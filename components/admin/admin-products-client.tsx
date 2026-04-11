@@ -100,6 +100,7 @@ interface Product {
   originalPrice: number | null
   createdAt: string
   _count?: { reviews: number }
+  sizeStock?: { size: string; stock: number }[]
 }
 
 interface ProductFormData {
@@ -165,6 +166,18 @@ function ProductFormDialog({
     originalPrice: '',
   })
 
+  // Size stock per size
+  const [sizeStockData, setSizeStockData] = useState<Record<string, string>>({})
+
+  const initSizeStock = (productSizes: string[], existingSizeStock: { size: string; stock: number }[]) => {
+    const stockMap: Record<string, string> = {}
+    productSizes.forEach((size) => {
+      const found = existingSizeStock.find((ss) => ss.size === size)
+      stockMap[size] = found ? found.stock.toString() : '0'
+    })
+    return stockMap
+  }
+
   useEffect(() => {
     if (product) {
       setFormData({
@@ -180,6 +193,7 @@ function ProductFormDialog({
         stock: product.stock.toString(),
         originalPrice: product.originalPrice?.toString() || '',
       })
+      setSizeStockData(initSizeStock(product.sizes, product.sizeStock || []))
     } else {
       setFormData({
         name: '',
@@ -194,26 +208,52 @@ function ProductFormDialog({
         stock: '0',
         originalPrice: '',
       })
+      setSizeStockData({})
     }
   }, [product, open])
+
+  // Update sizeStock when sizes change
+  useEffect(() => {
+    const sizes = formData.sizes.split(',').map((s) => s.trim()).filter(Boolean)
+    setSizeStockData((prev) => {
+      const newData: Record<string, string> = {}
+      sizes.forEach((size) => {
+        newData[size] = prev[size] || '0'
+      })
+      return newData
+    })
+  }, [formData.sizes])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
     try {
+      const parsedSizes = formData.sizes.split(',').map((s) => s.trim()).filter(Boolean)
+      const parsedColors = formData.colors.split(',').map((s) => s.trim()).filter(Boolean)
+
+      // Build sizeStock array
+      const sizeStock = parsedSizes.map((size) => ({
+        size,
+        stock: parseInt(sizeStockData[size] || '0') || 0,
+      }))
+
+      // Calculate total stock
+      const totalStock = sizeStock.reduce((sum, s) => sum + s.stock, 0)
+
       const payload = {
         name: formData.name,
         description: formData.description,
         price: parseFloat(formData.price),
         images: formData.images,
         brand: formData.brand,
-        sizes: formData.sizes.split(',').map((s) => s.trim()).filter(Boolean),
-        colors: formData.colors.split(',').map((s) => s.trim()).filter(Boolean),
+        sizes: parsedSizes,
+        colors: parsedColors,
         gender: formData.gender,
         shoeType: formData.shoeType,
-        stock: parseInt(formData.stock) || 0,
+        stock: totalStock,
         originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : null,
+        sizeStock,
       }
 
       const res = await fetch(
@@ -231,14 +271,14 @@ function ProductFormDialog({
       }
 
       toast({
-        title: 'Success',
-        description: `Product ${product ? 'updated' : 'created'} successfully.`,
+        title: 'Thành công',
+        description: `Sản phẩm đã được ${product ? 'cập nhật' : 'tạo'} thành công.`,
       })
       onOpenChange(false)
       onSuccess()
     } catch (error: any) {
       toast({
-        title: 'Error',
+        title: 'Lỗi',
         description: error.message,
         variant: 'destructive',
       })
@@ -246,6 +286,9 @@ function ProductFormDialog({
       setLoading(false)
     }
   }
+
+  // Helper variable for template
+  const parsedSizes = formData.sizes.split(',').map((s) => s.trim()).filter(Boolean)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -426,9 +469,38 @@ function ProductFormDialog({
                 id='sizes'
                 value={formData.sizes}
                 onChange={(e) => setFormData((f) => ({ ...f, sizes: e.target.value }))}
-                placeholder='38, 39, 40, 41, 42'
+                placeholder='35, 36, 37, 38, 39, 40, 41, 42, 43, 44'
               />
             </div>
+
+            {/* Size Stock Inputs */}
+            {parsedSizes.length > 0 && (
+              <div className='space-y-2 col-span-2'>
+                <Label>Stock per Size</Label>
+                <div className='grid grid-cols-4 sm:grid-cols-6 gap-2 p-3 border rounded-lg bg-gray-50'>
+                  {parsedSizes.map((size) => (
+                    <div key={size} className='space-y-1'>
+                      <Label className='text-xs font-medium'>Size {size}</Label>
+                      <Input
+                        type='number'
+                        min='0'
+                        value={sizeStockData[size] || '0'}
+                        onChange={(e) =>
+                          setSizeStockData((prev) => ({
+                            ...prev,
+                            [size]: e.target.value,
+                          }))
+                        }
+                        className='h-8 text-sm'
+                      />
+                    </div>
+                  ))}
+                </div>
+                <p className='text-xs text-muted-foreground'>
+                  Tổng stock: {parsedSizes.reduce((sum, size) => sum + (parseInt(sizeStockData[size] || '0') || 0), 0)} đôi
+                </p>
+              </div>
+            )}
 
             <div className='space-y-2 col-span-2'>
               <Label htmlFor='colors'>Available Colors (comma separated)</Label>

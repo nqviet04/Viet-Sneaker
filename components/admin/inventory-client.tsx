@@ -51,13 +51,6 @@ import {
 
 type Brand = 'NIKE' | 'ADIDAS' | 'PUMA' | 'NEW_BALANCE' | 'CONVERSE' | 'VANS'
 
-interface SizeStock {
-  size: string
-  stock: number
-  isLow: boolean
-  isOut: boolean
-}
-
 interface InventoryProduct {
   id: string
   name: string
@@ -65,6 +58,14 @@ interface InventoryProduct {
   images: string[]
   totalStock: number
   sizes: SizeStock[]
+  productSizes?: string[]
+}
+
+interface SizeStock {
+  size: string
+  stock: number
+  isLow: boolean
+  isOut: boolean
 }
 
 const BRANDS: Brand[] = ['NIKE', 'ADIDAS', 'PUMA', 'NEW_BALANCE', 'CONVERSE', 'VANS']
@@ -131,7 +132,7 @@ export function InventoryClient() {
         const data = await res.json()
 
         // Transform API response to match InventoryProduct interface
-        // API returns: { stock, sizeStock } -> Transform to: { totalStock, sizes }
+        // API returns: { stock, sizeStock } -> Transform to: { totalStock, sizes, productSizes }
         let items = data.products.map((p: any): InventoryProduct => ({
           id: p.id,
           name: p.name,
@@ -144,6 +145,7 @@ export function InventoryClient() {
             isLow: ss.stock > 0 && ss.stock <= 5,
             isOut: ss.stock === 0,
           })),
+          productSizes: p.sizes || [],
         }))
 
         // Client-side search
@@ -184,12 +186,14 @@ export function InventoryClient() {
     setEditProduct(product)
     const initial: Record<string, string> = {}
 
-    // product.sizes is now an array of { size, stock, isLow, isOut }
-    if (product.sizes && product.sizes.length > 0) {
-      product.sizes.forEach((s) => {
-        initial[s.size] = (s.stock ?? 0).toString()
-      })
-    }
+    // Get all sizes that should be editable for this product
+    const availableSizes = product.productSizes || product.sizes.map((s) => s.size)
+
+    // Initialize stock values for available sizes
+    availableSizes.forEach((size) => {
+      const found = product.sizes.find((s) => s.size === size)
+      initial[size] = (found?.stock ?? 0).toString()
+    })
 
     // Fill all sizes with 0 as default
     ALL_SIZES.forEach((size) => {
@@ -202,18 +206,53 @@ export function InventoryClient() {
     if (!editProduct) return
     setSaving(true)
     try {
+      // Collect all sizes with their stock values
+      const sizeStockUpdates: { size: string; stock: number }[] = []
+      const allSizes = new Set<string>()
+
       for (const [size, stock] of Object.entries(editStock)) {
         const num = parseInt(stock) || 0
+        sizeStockUpdates.push({ size, stock: num })
+        if (num > 0 || editProduct.sizes.some((s) => s.size === size)) {
+          allSizes.add(size)
+        }
+      }
+
+      // Update stock for each size
+      for (const update of sizeStockUpdates) {
         await fetch('/api/admin/inventory', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             productId: editProduct.id,
-            size,
-            stock: num,
+            size: update.size,
+            stock: update.stock,
           }),
         })
       }
+
+      // Update product.sizes if new sizes were added
+      const currentSizes = new Set(editProduct.sizes.map((s) => s.size))
+      const newSizes = Array.from(allSizes).sort((a, b) => {
+        const sizeA = parseFloat(a)
+        const sizeB = parseFloat(b)
+        return sizeA - sizeB
+      })
+
+      // Only update if sizes have changed
+      const sizesChanged = newSizes.length !== currentSizes.size ||
+        newSizes.some((s) => !currentSizes.has(s))
+
+      if (sizesChanged) {
+        await fetch(`/api/admin/products/${editProduct.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sizes: newSizes,
+          }),
+        })
+      }
+
       setEditProduct(null)
       fetchInventory()
     } catch (err) {
@@ -270,8 +309,11 @@ export function InventoryClient() {
 
           {editProduct && (
             <div className='space-y-3 py-2'>
+              <p className='text-sm text-muted-foreground'>
+                Sizes: {editProduct.productSizes?.join(', ') || editProduct.sizes.map((s) => s.size).join(', ')}
+              </p>
               <div className='flex flex-wrap gap-2'>
-                {ALL_SIZES.map((size) => (
+                {(editProduct.productSizes || editProduct.sizes.map((s) => s.size)).map((size) => (
                   <div key={size} className='flex flex-col items-center gap-1'>
                     <span className='text-xs font-medium text-muted-foreground'>{size}</span>
                     <Input
@@ -514,10 +556,11 @@ export function InventoryClient() {
                       </td>
                       {ALL_SIZES.map((size) => {
                         const sizeData = product.sizes.find((s) => s.size === size)
+                        const isProductSize = product.productSizes?.includes(size) || sizeData !== undefined
                         return (
                           <td key={size} className='p-1 text-center'>
-                            {sizeData ? (
-                              <StockCell stock={sizeData.stock} />
+                            {isProductSize ? (
+                              <StockCell stock={sizeData?.stock ?? 0} />
                             ) : (
                               <span className='text-gray-300 text-xs'>—</span>
                             )}

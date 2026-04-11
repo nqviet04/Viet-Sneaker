@@ -11,9 +11,9 @@ export async function GET(req: Request) {
 
     const { searchParams } = new URL(req.url)
     const brand = searchParams.get('brand')
-    const status = searchParams.get('status') // 'low' | 'out' | 'all'
+    const status = searchParams.get('status')
 
-    // Sync SizeStock data first: for products with sizes but no sizeStock records
+    // Sync SizeStock: create records for products that have sizes but no sizeStock records
     await syncMissingSizeStock()
 
     const where: any = {}
@@ -74,9 +74,7 @@ export async function GET(req: Request) {
   }
 }
 
-// Sync SizeStock: create records for products that have sizes but no sizeStock records
 async function syncMissingSizeStock() {
-  // Get ALL products that have sizes defined (regardless of stock value)
   const productsWithSizes = await prisma.product.findMany({
     where: {
       sizes: { isEmpty: false },
@@ -87,7 +85,6 @@ async function syncMissingSizeStock() {
   })
 
   for (const product of productsWithSizes) {
-    // If product has sizes but no sizeStock records, create them
     if (product.sizeStock.length === 0) {
       for (const size of product.sizes) {
         await prisma.sizeStock.upsert({
