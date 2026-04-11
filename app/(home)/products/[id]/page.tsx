@@ -30,7 +30,13 @@ async function getProduct(id: string) {
     notFound()
   }
 
-  return product
+  // Calculate real stock from sizeStock
+  const realStock = product.sizeStock.reduce((sum, ss) => sum + ss.stock, 0)
+
+  return {
+    ...product,
+    stock: realStock,
+  }
 }
 
 export default async function ProductPage(props: ProductPageProps) {

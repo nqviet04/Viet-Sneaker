@@ -50,12 +50,14 @@ export async function GET(request: NextRequest) {
           { brand: relatedBrand as any },
           { shoeType: relatedShoeType as any },
         ],
-        stock: { gt: 0 }, // Only show in-stock products
       },
-      take: 8,
+      take: 12,
       include: {
         reviews: {
           select: { rating: true },
+        },
+        sizeStock: {
+          select: { stock: true },
         },
       },
       orderBy: [
@@ -66,12 +68,20 @@ export async function GET(request: NextRequest) {
       ],
     })
 
-    // Sort to put same-brand products first
-    const sorted = relatedProducts.sort((a, b) => {
-      const aSameBrand = a.brand === relatedBrand ? 0 : 1
-      const bSameBrand = b.brand === relatedBrand ? 0 : 1
-      return aSameBrand - bSameBrand
-    })
+    // Calculate real stock and sort by stock > 0
+    const sorted = relatedProducts
+      .map((p) => ({
+        ...p,
+        stock: p.sizeStock.reduce((sum, ss) => sum + ss.stock, 0),
+      }))
+      .sort((a, b) => {
+        // Sort: same brand first, then in-stock products
+        const aSameBrand = a.brand === relatedBrand ? 0 : 1
+        const bSameBrand = b.brand === relatedBrand ? 0 : 1
+        if (aSameBrand !== bSameBrand) return aSameBrand - bSameBrand
+        return b.stock - a.stock
+      })
+      .slice(0, 8)
 
     return NextResponse.json(sorted)
   } catch (error) {

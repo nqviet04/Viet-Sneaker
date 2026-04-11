@@ -129,7 +129,22 @@ export function InventoryClient() {
       const res = await fetch(`/api/admin/inventory?${params}`)
       if (res.ok) {
         const data = await res.json()
-        let items = data.products as InventoryProduct[]
+
+        // Transform API response to match InventoryProduct interface
+        // API returns: { stock, sizeStock } -> Transform to: { totalStock, sizes }
+        let items = data.products.map((p: any): InventoryProduct => ({
+          id: p.id,
+          name: p.name,
+          brand: p.brand,
+          images: p.images || [],
+          totalStock: p.stock ?? 0,
+          sizes: (p.sizeStock || []).map((ss: any) => ({
+            size: ss.size,
+            stock: ss.stock,
+            isLow: ss.stock > 0 && ss.stock <= 5,
+            isOut: ss.stock === 0,
+          })),
+        }))
 
         // Client-side search
         if (search) {
@@ -168,10 +183,15 @@ export function InventoryClient() {
   const handleEditOpen = (product: InventoryProduct) => {
     setEditProduct(product)
     const initial: Record<string, string> = {}
-    product.sizes.forEach((s) => {
-      initial[s.size] = s.stock.toString()
-    })
-    // Fill missing sizes with 0
+
+    // product.sizes is now an array of { size, stock, isLow, isOut }
+    if (product.sizes && product.sizes.length > 0) {
+      product.sizes.forEach((s) => {
+        initial[s.size] = (s.stock ?? 0).toString()
+      })
+    }
+
+    // Fill all sizes with 0 as default
     ALL_SIZES.forEach((size) => {
       if (initial[size] === undefined) initial[size] = '0'
     })

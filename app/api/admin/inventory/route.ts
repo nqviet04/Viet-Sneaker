@@ -13,6 +13,9 @@ export async function GET(req: Request) {
     const brand = searchParams.get('brand')
     const status = searchParams.get('status') // 'low' | 'out' | 'all'
 
+    // Sync SizeStock data first: for products with sizes but no sizeStock records
+    await syncMissingSizeStock()
+
     const where: any = {}
 
     if (brand && brand !== 'all') {
@@ -29,15 +32,37 @@ export async function GET(req: Request) {
       orderBy: { name: 'asc' },
     })
 
+    // Calculate real totalStock from sizeStock and update product.stock if needed
+    for (const product of products) {
+      const realTotal = product.sizeStock.reduce((sum, ss) => sum + ss.stock, 0)
+      if (realTotal !== product.stock) {
+        await prisma.product.update({
+          where: { id: product.id },
+          data: { stock: realTotal },
+        })
+      }
+    }
+
+    // Refetch with updated stock values
+    const updatedProducts = await prisma.product.findMany({
+      where,
+      include: {
+        sizeStock: {
+          orderBy: { size: 'asc' },
+        },
+      },
+      orderBy: { name: 'asc' },
+    })
+
     // Filter by status
-    let filtered = products
+    let filtered = updatedProducts
     if (status === 'low') {
-      filtered = products.filter((p) =>
+      filtered = updatedProducts.filter((p) =>
         p.sizeStock.some((ss) => ss.stock > 0 && ss.stock <= 5) ||
-        (p.sizeStock.length === 0 && p.stock > 0 && p.stock <= 5)
+        (p.stock > 0 && p.stock <= 5 && p.sizeStock.length === 0)
       )
     } else if (status === 'out') {
-      filtered = products.filter((p) =>
+      filtered = updatedProducts.filter((p) =>
         p.sizeStock.some((ss) => ss.stock === 0) || p.stock === 0
       )
     }
@@ -46,6 +71,32 @@ export async function GET(req: Request) {
   } catch (error) {
     console.error('[INVENTORY_GET]', error)
     return new NextResponse('Internal error', { status: 500 })
+  }
+}
+
+// Sync SizeStock: create records for products that have sizes but no sizeStock records
+async function syncMissingSizeStock() {
+  // Get ALL products that have sizes defined (regardless of stock value)
+  const productsWithSizes = await prisma.product.findMany({
+    where: {
+      sizes: { isEmpty: false },
+    },
+    include: {
+      sizeStock: true,
+    },
+  })
+
+  for (const product of productsWithSizes) {
+    // If product has sizes but no sizeStock records, create them
+    if (product.sizeStock.length === 0) {
+      for (const size of product.sizes) {
+        await prisma.sizeStock.upsert({
+          where: { productId_size: { productId: product.id, size } },
+          create: { productId: product.id, size, stock: 0 },
+          update: { stock: 0 },
+        })
+      }
+    }
   }
 }
 

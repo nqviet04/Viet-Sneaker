@@ -79,13 +79,25 @@ export async function GET(request: NextRequest) {
         take: ITEMS_PER_PAGE,
         include: {
           _count: { select: { reviews: true } },
+          sizeStock: {
+            select: { size: true, stock: true },
+          },
         },
       }),
     ])
+
+    // Transform products to include real totalStock from sizeStock
+    const productsWithRealStock = products.map((p) => {
+      const realTotalStock = p.sizeStock.reduce((sum, ss) => sum + ss.stock, 0)
+      return {
+        ...p,
+        stock: realTotalStock,
+      }
+    })
     console.log('[AdminProducts API] Count result:', total, 'Products:', products.length)
 
     return NextResponse.json({
-      products,
+      products: productsWithRealStock,
       total,
       perPage: ITEMS_PER_PAGE,
       page,
