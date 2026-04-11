@@ -1,0 +1,361 @@
+---
+description: 
+alwaysApply: true
+---
+
+# Cursor Rules
+
+## Instructions
+
+- Record fixes for mistakes or corrections to avoid repetition in the `Lessons` section.
+- Organize thoughts and plan steps before starting a task in the `Scratchpad` section.
+- Clear old tasks if necessary.
+- Use todo markers for progress tracking:
+  - `[X]` Completed tasks
+  - `[ ]` Pending tasks
+- Update Scratchpad after completing subtasks.
+- Reflect and plan after milestones for better task management.
+- Always refer to Scratchpad before planning the next step.
+
+## Lessons
+
+1. Use `npx shadcn@latest add [component]` instead of `npx shadcn-ui@latest add [component]` when installing Shadcn UI components.
+2. In Next.js 14+, page props params must be typed as a Promise. Example:
+   ```typescript
+   type tParams = Promise<{ id: string }>
+   interface PageProps {
+     params: tParams
+   }
+   ```
+   Then await the params in the component:
+   ```typescript
+   export default async function Page(props: PageProps) {
+     const { id } = await props.params
+   }
+   ```
+3. Use `const session = await auth()` instead of `const session = await getServerSession(authOptions)` for Next.js authentication. The new `auth()` function is the recommended way to get the session in Next.js Auth v5.
+4. When importing `useRouter` from 'next/navigation', the component must be marked as a client component using the `'use client'` directive at the top of the file, as this hook only works on the client side.
+5. For admin API routes in Next.js 15, always use `auth()` from `@/auth` for session validation and check `session.user.role` for admin authorization. Never rely on client-side checks alone.
+6. UploadThing v7 uses `@uploadthing/react` with `generateUploadButton` and `generateUploadDropzone` helpers. The route handler is created via `createRouteHandler` from `uploadthing/server/next/server`.
+7. For CSV export in Next.js API routes, use `new NextResponse(csv, { headers: { 'Content-Type': 'text/csv', 'Content-Disposition': 'attachment; filename="..." } })` to trigger a file download.
+8. When doing bulk delete on products with existing orders, use soft-delete (set stock=0) instead of hard delete to preserve order history integrity.
+9. For shoe store, the Product model uses brand/sizes/colors/gender/shoeType instead of categoryId. Do NOT use categoryId in any new code.
+10. CartItem must include selectedSize and selectedColor for shoe products. Unique key for cart items is `productId + selectedSize + selectedColor`.
+11. Related products should be based on brand + shoeType matching, not categoryId.
+12. Products API uses comma-separated multi-select params: `brands`, `sizes`, `colors`. Use Prisma `hasSome` for array filters and `{ in: [...] }` for multi-enum filters.
+
+## Scratchpad
+
+### 1. Project Setup and Configuration [X]
+
+- [x] Initialize Next.js 15 project with TypeScript
+- [x] Set up project structure and folders
+- [x] Configure ESLint and Prettier
+- [x] Install and configure dependencies:
+  - Shadcn UI components
+  - Lucide icons
+  - Zod for validation
+  - Zustand for state management
+  - Recharts for analytics
+  - Resend for emails
+  - Uploadthing for file uploads
+  - Prisma ORM
+  - PostgreSQL database
+  - NextAuth.js beta for authentication
+  - Stripe for payments
+
+### 2. Database and Authentication [X]
+
+- [x] Set up PostgreSQL database
+- [x] Configure Prisma schema:
+  - User model
+  - Product model
+  - Category model
+  - Order model
+  - Review model
+  - Cart model
+- [x] Implement NextAuth.js authentication:
+  - Email/Password
+  - OAuth providers (Google, GitHub)
+  - JWT handling
+  - Protected routes
+
+### 3. Core Features - Customer Side [X]
+
+- [x] Home Layout:
+  - Create `(home)` folder in `app` directory
+  - Header with logo, search bar, and navigation
+  - Footer with links and social media
+- [x] Homepage:
+  - banner carousel
+  - latest products
+- [x] Products Catalog:
+  - Sidebar with filters (brand, gender, shoeType, size, inStock, price)
+  - Search results
+  - Product grid
+  - Pagination
+- [x] Product pages:
+  - Create product detail page layout
+  - Implement image gallery with thumbnails
+  - Add product information section:
+    - Title, price, description, badges (brand, gender, shoeType)
+    - Stock status with size/color selection
+    - Color selector with visual color swatches
+    - Size selector from product sizes array
+    - Add to cart button (validates size/color selection)
+  - Reviews and ratings section:
+    - Display existing reviews
+    - Add review form for authenticated users (via /api/reviews)
+    - Star rating component
+  - Related products section:
+    - Show products from same brand + shoeType
+    - Product card carousel
+- [x] Shopping cart:
+  - Add/remove items with selectedSize and selectedColor
+  - Update quantities
+  - Cart persistence (localStorage via Zustand)
+- [x] Checkout process:
+  - Shipping information
+  - Payment integration (Stripe)
+  - Order confirmation
+- [x] User dashboard:
+  - Order history
+  - Profile management
+  - Saved addresses
+  - Wishlist
+
+### 4. Admin Dashboard [X]
+
+- [x] Admin authentication and authorization
+- [x] Dashboard overview:
+  - [x] Layout and Structure:
+    - [x] Create admin dashboard layout with sidebar navigation
+    - [x] Implement responsive grid for dashboard widgets
+    - [x] Add loading states and error boundaries
+  - [x] Key Metrics Cards:
+    - [x] Total revenue widget with real data
+    - [x] Total orders widget with real data
+    - [x] Total customers widget with real data
+    - [x] Average order value widget with real data
+  - [x] Sales Analytics:
+    - [x] Revenue Chart:
+      - [x] Implement line chart using Recharts
+      - [x] Add daily/weekly/monthly/yearly filters
+      - [x] Show revenue trends over time
+      - [x] Add tooltip with detailed information
+    - [x] Order Statistics:
+      - [x] Bar chart for order volume
+      - [x] Order status distribution
+      - [x] Peak ordering times
+  - [x] Recent Orders Table:
+    - [x] Implement data table with columns:
+      - [x] Order ID
+      - [x] Customer name
+      - [x] Order total
+      - [x] Status
+      - [x] Date
+    - [x] Add sorting and filtering
+    - [x] Quick actions (view, process, update status)
+  - [x] Low Stock Alerts:
+    - [x] Products with stock below threshold
+    - [x] Quick restock actions
+    - [x] Stock level indicators
+  - [x] Top Products:
+    - [x] Best-selling products list
+    - [x] Revenue by product
+    - [x] Stock status
+    - [x] Time range filter (7d/30d/90d/all)
+  - [x] Customer Insights:
+    - [x] New vs returning customers
+    - [x] Customer acquisition chart
+    - [x] Top customers by revenue
+  - [x] Export and Reports:
+    - [x] CSV/PDF export functionality (orders, products, customers)
+    - [x] Custom date range selection
+- [x] Product management:
+  - [x] CRUD operations with product form dialog
+  - [x] Bulk actions (delete, update-stock, update-brand, restock)
+  - [x] Image upload (UploadThing integration)
+  - [x] Search, filter by brand/stock, sort
+  - [x] Pagination
+- [x] Order management:
+  - [x] Order list with search/filter/sort
+  - [x] Order detail dialog with customer & items info
+  - [x] Status transitions (Pending→Processing→Shipped→Delivered/Cancelled)
+  - [x] Refund handling for delivered orders
+- [x] User management:
+  - [x] Customer list with search/filter/sort
+  - [x] User detail view with stats
+  - [x] Admin privileges (promote/demote to admin)
+  - [x] Delete user account
+
+### 5. Components Mới (Ngày 2-3) [X]
+
+- [x] Tạo components mới:
+  - [x] `components/products/size-selector.tsx` - Grid button selector với stock check, tooltip
+  - [x] `components/products/color-selector.tsx` - Swatch selector với 30+ colors
+  - [x] `components/products/brand-badge.tsx` - Brand, Gender, ShoeType badges với styled configs
+- [x] Cập nhật product-info.tsx:
+  - [x] Sử dụng SizeSelector component
+  - [x] Sử dụng ColorSelector component
+  - [x] Hiển thị BrandBadge, GenderBadge, ShoeTypeBadge
+  - [x] Validation: bắt buộc chọn size (và color nếu có) trước khi add to cart
+- [x] Cập nhật product-sidebar.tsx:
+  - [x] Brand checkboxes (multi-select)
+  - [x] Size filter button grid (multi-select)
+  - [x] Color filter swatches (multi-select)
+  - [x] Gender radio (single select)
+  - [x] Shoe Type radio (single select)
+  - [x] In Stock toggle
+  - [x] Price range slider
+  - [x] Active filter count badge
+
+### 5. Advanced Features [ ]
+
+- [ ] Real-time notifications
+- [ ] Email system (Resend):
+  - Order confirmations
+  - Shipping updates
+  - Password reset
+- [ ] Search optimization
+- [ ] Performance optimization:
+  - Image optimization
+  - Caching strategies
+  - API optimization
+- [ ] Analytics and reporting
+
+### 5. Pages (Phase 5) [X]
+
+- [x] Tạo FeaturedBrands component với 6 brand logos (Nike, Adidas, Puma, New Balance, Converse, Vans)
+- [x] Tạo ProductSection component cho reuseable product grids với view all link
+- [x] Cập nhật trang chủ (app/(home)/page.tsx):
+  - Banner carousel với promo banners (Unsplash images)
+  - Featured Brands section
+  - New Arrivals section
+  - Best Sellers section
+  - Trust badges section (Free shipping, Secure payment, Easy returns, Flexible payment)
+- [x] Cập nhật products page:
+  - Active filters display với Badge + X button
+  - Remove single filter hoặc clear all
+  - Total count display
+- [x] Cập nhật product detail page:
+  - Breadcrumb: Home > Brand > Product Name
+  - Size guide link (/size-guide)
+- [x] Tạo BrandBadge component với 6 brand metadata (label, tagline, bg color, description)
+- [x] Tạo brands listing page (/brands):
+  - Grid of brand cards với hover effects
+  - Product count per brand
+  - Dynamic brand colors
+- [x] Tạo brand landing page (/brands/[brand]):
+  - Brand hero banner với brand color
+  - Gender filter quick links
+  - Product grid
+- [x] Tạo size guide page (/size-guide):
+  - How to measure instructions
+  - Size charts for Women, Men, Kids (US/UK/EU/CM)
+  - Fit tips section
+- [x] Thêm "Brands" link vào header navigation
+- [x] Fix ProductCard:
+  - Thêm selectedSize/selectedColor vào cart.addItem
+  - Support _count.reviews thay vi nested reviews
+  - showBadges và compact props
+  - Out of stock overlay
+  - Sale badge với percentage
+
+
+### 6. Cart & Checkout (Phase 6) [X]
+
+- [x] Cart page (app/(home)/cart/page.tsx):
+  - Hiển thị selectedSize, selectedColor với styling đẹp
+  - Change Size button với icon edit
+  - ChangeSizeDialog component (components/cart/change-size-dialog.tsx)
+  - +/- buttons cho quantity thay vi Input
+  - Remove button với icon
+  - Sticky order summary sidebar
+  - Empty cart state với icon
+- [x] Order summary (components/checkout/order-summary.tsx):
+  - Hiển thị selectedSize, selectedColor cho mỗi item
+  - Free shipping khi subtotal >= $100
+  - Tax calculation
+- [x] Schema validation: OrderItem đã có selectedSize và selectedColor
+- [x] Checkout API: đã lưu selectedSize, selectedColor vào OrderItem
+
+### 7. Header & Navigation (Phase 7) [X]
+
+- [x] Header (components/layout/header.tsx):
+  - Logo "AI Amazona" với ShoppingBag icon
+  - Sticky header với z-50
+  - Navigation: Home, Products, Brands (dropdown), Sale
+  - Brand dropdown với 6 brands (Nike, Adidas, Puma, New Balance, Converse, Vans) + "View All Brands"
+  - Sale link highlighted in red với hover bg
+  - Search bar với placeholder "Search shoes..."
+  - Cart badge, User menu (signed in/out)
+  - Mobile responsive: hide nav on small screens, show search icon
+- [x] Footer (components/layout/footer.tsx):
+  - Dark theme (bg-gray-900)
+  - 4 columns: Brands, Shop, Help, Company
+  - Brand links for all 6 brands + View All
+  - Shop links: All Products, New Arrivals, Sale, Men, Women
+  - Help links: Size Guide, Shipping, Returns, Contact, FAQ
+  - Company links: About, Privacy, Terms
+  - Social icons: Facebook, Instagram, Twitter, YouTube (rounded buttons)
+  - Newsletter subscription form
+  - Copyright with dynamic year
+
+### 8. Admin Dashboard - Inventory (Phase 8) [X]
+
+- [x] Analytics (lib/analytics.ts):
+  - LOW_STOCK_THRESHOLD = 5 pairs (< 5 = low stock)
+  - getInventoryData(): inventory với size breakdown, hasLowStock/hasOutOfStock flags
+  - getLowStockAlertsDetailed(): chi tiết low stock và out of stock với từng size
+  - Legacy getLowStockProducts/getOutOfStockProducts giữ lại cho backward compatibility
+- [x] Stock Alerts (components/admin/low-stock-alerts.tsx):
+  - Out of Stock: hiển thị tên size cụ thể đang hết hàng (XCircle, red border)
+  - Low Stock: hiển thị pills Size:Stock cho từng size (< 5 pairs = orange)
+  - Link to Inventory page
+- [x] Inventory API (/api/admin/inventory/route.ts):
+  - GET: list products với sizeStock, filter by brand/status
+  - PATCH: update stock cho từng size (upsert SizeStock, recalculate total)
+  - POST: bulk restock - add stock to all sizes cho selected products
+- [x] Inventory Management Page (/admin/inventory):
+  - Stats cards: Total, Out of Stock, Low Stock, Healthy
+  - Bảng với columns: checkbox, product, brand, total, từng size (35-46)
+  - StockCell component: Out/Low/OK indicator với colors
+  - Edit dialog: grid of size inputs để update stock per size
+  - Bulk restock dialog: select multiple products, add stock to all sizes
+  - Filter by brand, status (out/low/all), search, sort
+- [x] Admin Header: thêm "Inventory" navigation link
+
+### 9. Testing & Polish (Phase 9) [X]
+
+**Bugs đã fix:**
+- [x] Orders API: lưu selectedSize/selectedColor vào OrderItem
+- [x] Orders API: decrement sizeStock thay vì product.stock, recalculate product.totalStock
+- [x] Orders API: check size-specific stock trước khi tạo order
+- [x] Payment page: dùng OrderPaymentSummary đọc từ order thay vì cart (cart bị clear sau khi tạo order)
+- [x] Order confirmation: hiển thị size/color cho từng item, tính total đúng từ stored order.total
+- [x] Order confirmation: hiển thị fullName và email từ shipping address
+- [x] Schema: Address model thêm fullName và email fields
+
+### 10. Testing and Deployment [ ]
+
+- [ ] Unit testing
+- [ ] Integration testing
+- [ ] E2E testing
+- [ ] Security audit
+- [ ] Production deployment:
+  - Environment setup
+  - CI/CD pipeline
+  - Monitoring
+  - Backup strategy
+
+### 7. Documentation [ ]
+
+- [ ] API documentation
+- [ ] User guide
+- [ ] Admin documentation
+- [ ] Deployment guide
+
+
+###  8. Language
+Always think and respond in Vietnamese.

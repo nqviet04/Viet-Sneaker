@@ -1,0 +1,341 @@
+/**
+ * ============================================
+ * PRISMA SCHEMA - WEBSITE BÁN GIÀY
+ * ============================================
+ * Phiên bản: Chuyển đổi từ e-commerce generic → Shoe Store
+ * Các thay đổi:
+ * - Thêm enums: Brand, Gender, ShoeType
+ * - Thêm trường giày vào Product
+ * - Thêm model SizeStock cho tồn kho theo size
+ * - Thêm selectedSize/selectedColor vào CartItem/OrderItem
+ * ============================================
+ */
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+/**
+ * Vai trò người dùng
+ */
+enum Role {
+  USER
+  ADMIN
+}
+
+/**
+ * Trạng thái đơn hàng
+ */
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+/**
+ * Thương hiệu giày
+ * 6 thương hiệu chính: Nike, Adidas, Puma, New Balance, Converse, Vans
+ */
+enum Brand {
+  NIKE
+  ADIDAS
+  PUMA
+  NEW_BALANCE
+  CONVERSE
+  VANS
+}
+
+/**
+ * Giới tính mục tiêu
+ */
+enum Gender {
+  MEN
+  WOMEN
+  UNISEX
+}
+
+/**
+ * Loại giày theo mục đích sử dụng
+ */
+enum ShoeType {
+  RUNNING
+  CASUAL
+  BOOTS
+  FORMAL
+  SLIPPERS
+  BASKETBALL
+  SKATEBOARDING
+  TRAINING
+  HIKING
+}
+
+// ============================================
+// USER & AUTH MODELS
+// ============================================
+
+/**
+ * Người dùng - lưu thông tin khách hàng và admin
+ */
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Quan hệ với các bảng khác
+  accounts  Account[]
+  sessions  Session[]
+  orders    Order[]
+  reviews   Review[]
+  cart      Cart?
+  addresses Address[]
+}
+
+/**
+ * Tài khoản OAuth (Google, GitHub, etc.)
+ */
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+/**
+ * Phiên đăng nhập
+ */
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ============================================
+// PRODUCT MODELS
+// ============================================
+
+/**
+ * Sản phẩm giày
+ * Mở rộng từ model Product cũ với các trường chuyên biệt cho giày
+ */
+model Product {
+  id          String      @id @default(cuid())
+  name        String
+  description String
+  price       Float
+
+  // Ảnh sản phẩm - mảng URL
+  images      String[]
+
+  // ==========================================
+  // CÁC TRƯỜNG MỚI CHO WEBSITE BÁN GIÀY
+  // ==========================================
+
+  // Thương hiệu: Nike, Adidas, Puma, New Balance, Converse, Vans
+  brand     Brand
+  // Kích thước có sẵn: ["38", "39", "40", "41", "42"]
+  sizes     String[]
+  // Màu sắc có sẵn: ["black", "white", "red"]
+  colors    String[]
+  // Giới tính mục tiêu: MEN, WOMEN, UNISEX
+  gender    Gender
+  // Loại giày: RUNNING, CASUAL, BOOTS, etc.
+  shoeType  ShoeType
+  // Tồn kho tổng (tính từ SizeStock)
+  stock     Int         @default(0)
+  // Giá gốc (nếu có khuyến mãi)
+  originalPrice Float?
+
+  // ==========================================
+  // CÁC TRƯỜNG GIỮ NGUYÊN
+  // ==========================================
+
+  // Liên kết với các bảng khác
+  reviews     Review[]
+  orderItems  OrderItem[]
+  cartItems   CartItem[]
+  sizeStock   SizeStock[]
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/**
+ * Tồn kho theo từng size
+ * Ví dụ: Nike Air Force 1 - Size 42 - còn 5 đôi
+ */
+model SizeStock {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  // Size giày: "38", "39", "40", etc.
+  size      String
+  // Số lượng tồn kho cho size này
+  stock     Int     @default(0)
+
+  // Đảm bảo mỗi product không có 2 dòng cùng size
+  @@unique([productId, size])
+  // Index để tìm kiếm nhanh theo product
+  @@index([productId])
+}
+
+/**
+ * Loại giày (Category cũ - giữ lại để tương thích)
+ * Có thể dùng để phân nhóm giày theo loại: Running, Casual, Formal, etc.
+ */
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  image       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// ============================================
+// ORDER MODELS
+// ============================================
+
+/**
+ * Đơn hàng
+ */
+model Order {
+  id              String      @id @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  items           OrderItem[]
+  status          OrderStatus @default(PENDING)
+  shippingAddress Address     @relation(fields: [addressId], references: [id])
+  addressId       String
+  total           Float
+  stripePaymentId String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+/**
+ * Chi tiết đơn hàng - mỗi sản phẩm trong đơn hàng
+ * Đã thêm selectedSize và selectedColor để lưu thông tin giày được chọn
+ */
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  // Size và màu đã chọn khi đặt hàng
+  selectedSize   String
+  selectedColor  String
+  quantity  Int
+  price     Float   // Giá tại thời điểm đặt hàng
+}
+
+// ============================================
+// CART MODELS
+// ============================================
+
+/**
+ * Giỏ hàng của người dùng
+ */
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id])
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+/**
+ * Item trong giỏ hàng
+ * Đã thêm selectedSize và selectedColor để lưu thông tin giày được chọn
+ */
+model CartItem {
+  id        String  @id @default(cuid())
+  cartId    String
+  cart      Cart    @relation(fields: [cartId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  // Size và màu đã chọn
+  selectedSize  String
+  selectedColor String
+  quantity  Int
+}
+
+// ============================================
+// REVIEW MODEL
+// ============================================
+
+/**
+ * Đánh giá sản phẩm
+ */
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int      // 1-5 sao
+  comment   String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Mỗi user chỉ đánh giá 1 lần cho 1 sản phẩm
+  @@unique([userId, productId])
+  @@index([productId])
+}
+
+// ============================================
+// ADDRESS MODEL
+// ============================================
+
+/**
+ * Địa chỉ giao hàng của người dùng
+ */
+model Address {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  orders     Order[]
+  fullName   String
+  email      String
+  street     String
+  city       String
+  state      String
+  postalCode String
+  country    String
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
