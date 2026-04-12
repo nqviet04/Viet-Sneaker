@@ -226,6 +226,40 @@ function ProductFormDialog({
     })
   }, [formData.sizes])
 
+  // Distribute stock equally when sizes change
+  useEffect(() => {
+    const sizes = formData.sizes.split(',').map((s) => s.trim()).filter(Boolean)
+    const stock = parseInt(formData.stock) || 0
+    if (sizes.length > 0 && stock > 0) {
+      const base = Math.floor(stock / sizes.length)
+      const remainder = stock % sizes.length
+      setSizeStockData((prev) => {
+        const newData: Record<string, string> = {}
+        sizes.forEach((size, index) => {
+          newData[size] = prev[size] ? prev[size] : (index < remainder ? base + 1 : base).toString()
+        })
+        return newData
+      })
+    }
+  }, [formData.sizes])
+
+  // Distribute stock equally when stock changes
+  useEffect(() => {
+    const stock = parseInt(formData.stock) || 0
+    const sizes = formData.sizes.split(',').map((s) => s.trim()).filter(Boolean)
+    if (stock > 0 && sizes.length > 0) {
+      const base = Math.floor(stock / sizes.length)
+      const remainder = stock % sizes.length
+      setSizeStockData((prev) => {
+        const newData: Record<string, string> = {}
+        sizes.forEach((size, index) => {
+          newData[size] = (index < remainder ? base + 1 : base).toString()
+        })
+        return newData
+      })
+    }
+  }, [formData.stock])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -287,6 +321,13 @@ function ProductFormDialog({
       })
     }
   }
+
+  // Handle dialog close (X button or click outside) - only reload when editing
+  useEffect(() => {
+    if (!open && product) {
+      onCancel()
+    }
+  }, [open, product, onCancel])
 
   // Helper variable for template
   const parsedSizes = formData.sizes.split(',').map((s) => s.trim()).filter(Boolean)
@@ -732,7 +773,7 @@ export function AdminProductsClient({
         throw new Error(data.error || 'Delete failed')
       }
       toast({ title: 'Success', description: 'Product deleted.' })
-      fetchProducts()
+      setTimeout(() => window.location.reload(), 2000)
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -758,7 +799,7 @@ export function AdminProductsClient({
       toast({ title: 'Success', description: `${selectedIds.size} product(s) deleted.` })
       setSelectedIds(new Set())
       setSelectAll(false)
-      fetchProducts()
+      setTimeout(() => window.location.reload(), 2000)
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -786,8 +827,12 @@ export function AdminProductsClient({
         open={formOpen}
         onOpenChange={setFormOpen}
         product={editingProduct}
-        onRefresh={() => window.location.reload()}
-        onCancel={() => window.location.reload()}
+        onRefresh={() => {
+          window.location.href = window.location.pathname + window.location.search
+        }}
+        onCancel={() => {
+          window.location.href = window.location.pathname + window.location.search
+        }}
       />
 
       {/* Delete Confirmation */}

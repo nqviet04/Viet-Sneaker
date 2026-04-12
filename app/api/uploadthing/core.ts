@@ -1,6 +1,5 @@
 import { createUploadthing } from 'uploadthing/server'
 import type { FileRouter } from 'uploadthing/server'
-import { z } from 'zod'
 
 const f = createUploadthing()
 
@@ -8,13 +7,11 @@ export const ourFileRouter = {
   productImages: f({
     image: { maxFileSize: '4MB', maxFileCount: 5 },
   })
-    .input(z.object({ productId: z.string().optional() }))
     .middleware(async () => {
-      return { uploadedBy: 'admin' }
+      return {}
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      console.log('Upload complete for user:', metadata.uploadedBy)
-      console.log('file url:', file.url)
+      console.log('Upload complete:', file.url)
       return { url: file.url }
     }),
 } satisfies FileRouter
