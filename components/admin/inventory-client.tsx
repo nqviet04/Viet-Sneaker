@@ -206,49 +206,21 @@ export function InventoryClient() {
     if (!editProduct) return
     setSaving(true)
     try {
-      // Collect all sizes with their stock values
-      const sizeStockUpdates: { size: string; stock: number }[] = []
-      const allSizes = new Set<string>()
+      // Get valid sizes for this product from products page
+      const validSizes = editProduct.productSizes || editProduct.sizes.map((s) => s.size)
 
-      for (const [size, stock] of Object.entries(editStock)) {
+      // Collect and update stock only for valid sizes
+      for (const size of validSizes) {
+        const stock = editStock[size] ?? '0'
         const num = parseInt(stock) || 0
-        sizeStockUpdates.push({ size, stock: num })
-        if (num > 0 || editProduct.sizes.some((s) => s.size === size)) {
-          allSizes.add(size)
-        }
-      }
 
-      // Update stock for each size
-      for (const update of sizeStockUpdates) {
         await fetch('/api/admin/inventory', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             productId: editProduct.id,
-            size: update.size,
-            stock: update.stock,
-          }),
-        })
-      }
-
-      // Update product.sizes if new sizes were added
-      const currentSizes = new Set(editProduct.sizes.map((s) => s.size))
-      const newSizes = Array.from(allSizes).sort((a, b) => {
-        const sizeA = parseFloat(a)
-        const sizeB = parseFloat(b)
-        return sizeA - sizeB
-      })
-
-      // Only update if sizes have changed
-      const sizesChanged = newSizes.length !== currentSizes.size ||
-        newSizes.some((s) => !currentSizes.has(s))
-
-      if (sizesChanged) {
-        await fetch(`/api/admin/products/${editProduct.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            sizes: newSizes,
+            size,
+            stock: num,
           }),
         })
       }

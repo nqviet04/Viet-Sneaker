@@ -114,6 +114,16 @@ export async function PATCH(req: Request) {
 
     const stockNum = Math.max(0, parseInt(stock) || 0)
 
+    // Check if size is valid for this product
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      select: { sizes: true },
+    })
+
+    if (!product || !product.sizes.includes(size)) {
+      return new NextResponse('Invalid size for this product', { status: 400 })
+    }
+
     // Upsert size stock
     await prisma.sizeStock.upsert({
       where: {
@@ -123,12 +133,16 @@ export async function PATCH(req: Request) {
       create: { productId, size, stock: stockNum },
     })
 
-    // Recalculate total product stock
+    // Recalculate total product stock (only from valid sizes)
     const sizeStocks = await prisma.sizeStock.findMany({
       where: { productId },
-      select: { stock: true },
+      select: { stock: true, size: true },
     })
-    const totalStock = sizeStocks.reduce((sum, ss) => sum + ss.stock, 0)
+
+    // Filter only sizes that exist in product.sizes
+    const validSizeStocks = sizeStocks.filter((ss) => product.sizes.includes(ss.size))
+    const totalStock = validSizeStocks.reduce((sum, ss) => sum + ss.stock, 0)
+
     await prisma.product.update({
       where: { id: productId },
       data: { stock: totalStock },
@@ -141,7 +155,7 @@ export async function PATCH(req: Request) {
   }
 }
 
-// Bulk restock - add stock to all sizes
+// Bulk restock - add stock to all sizes of valid products only
 export async function POST(req: Request) {
   try {
     const session = await auth()
@@ -158,23 +172,49 @@ export async function POST(req: Request) {
 
     const addAmount = Math.max(0, parseInt(amount) || 0)
 
-    // Add stock to all existing sizeStocks for these products
-    await prisma.sizeStock.updateMany({
-      where: { productId: { in: productIds } },
-      data: { stock: { increment: addAmount } },
+    // Get products with their valid sizes
+    const products = await prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: { id: true, sizes: true },
     })
 
-    // Recalculate totals
+    const productSizeMap = new Map(products.map((p) => [p.id, p.sizes]))
+
+    // Add stock only to sizeStocks that are in product.sizes
     for (const productId of productIds) {
-      const sizeStocks = await prisma.sizeStock.findMany({
-        where: { productId },
-        select: { stock: true },
-      })
-      const totalStock = sizeStocks.reduce((sum, ss) => sum + ss.stock, 0)
-      await prisma.product.update({
-        where: { id: productId },
-        data: { stock: totalStock },
-      })
+      const validSizes = productSizeMap.get(productId) || []
+
+      if (validSizes.length > 0) {
+        // Update only valid sizes
+        for (const size of validSizes) {
+          const existing = await prisma.sizeStock.findUnique({
+            where: { productId_size: { productId, size } },
+          })
+
+          if (existing) {
+            await prisma.sizeStock.update({
+              where: { productId_size: { productId, size } },
+              data: { stock: { increment: addAmount } },
+            })
+          } else {
+            await prisma.sizeStock.create({
+              data: { productId, size, stock: addAmount },
+            })
+          }
+        }
+
+        // Recalculate total from valid sizes only
+        const sizeStocks = await prisma.sizeStock.findMany({
+          where: { productId },
+          select: { stock: true, size: true },
+        })
+        const validSizeStocks = sizeStocks.filter((ss) => validSizes.includes(ss.size))
+        const totalStock = validSizeStocks.reduce((sum, ss) => sum + ss.stock, 0)
+        await prisma.product.update({
+          where: { id: productId },
+          data: { stock: totalStock },
+        })
+      }
     }
 
     return NextResponse.json({ success: true, updated: productIds.length })
