@@ -144,12 +144,14 @@ function ProductFormDialog({
   open,
   onOpenChange,
   product,
-  onSuccess,
+  onRefresh,
+  onCancel,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   product: Product | null
-  onSuccess: () => void
+  onRefresh: () => void
+  onCancel: () => void
 }) {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState<ProductFormData>({
@@ -275,15 +277,14 @@ function ProductFormDialog({
         description: `Sản phẩm đã được ${product ? 'cập nhật' : 'tạo'} thành công.`,
       })
       onOpenChange(false)
-      onSuccess()
+      setTimeout(() => onRefresh(), 2000)
     } catch (error: any) {
+      setLoading(false)
       toast({
         title: 'Lỗi',
         description: error.message,
         variant: 'destructive',
       })
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -528,7 +529,10 @@ function ProductFormDialog({
             <Button
               type='button'
               variant='outline'
-              onClick={() => onOpenChange(false)}
+              onClick={() => {
+                onOpenChange(false)
+                onCancel()
+              }}
             >
               Cancel
             </Button>
@@ -782,7 +786,8 @@ export function AdminProductsClient({
         open={formOpen}
         onOpenChange={setFormOpen}
         product={editingProduct}
-        onSuccess={fetchProducts}
+        onRefresh={() => window.location.reload()}
+        onCancel={() => window.location.reload()}
       />
 
       {/* Delete Confirmation */}
