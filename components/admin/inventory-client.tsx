@@ -345,9 +345,9 @@ export function InventoryClient() {
       {/* Header */}
       <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
         <div>
-          <h2 className='text-3xl font-bold tracking-tight'>Inventory</h2>
+          <h2 className='text-3xl font-bold tracking-tight'>Tồn kho</h2>
           <p className='text-muted-foreground text-sm'>
-            Manage stock levels for each product and size
+          Quản lý mức tồn kho cho từng sản phẩm và kích cỡ.
           </p>
         </div>
         {bulkProductIds.length > 0 && (

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import {
   Table,
@@ -214,6 +215,15 @@ export function AdminUsersClient({ currentUserId }: { currentUserId: string }) {
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null)
+  const wasDetailOpen = useRef(false)
+
+  // Refresh page when detail dialog closes
+  useEffect(() => {
+    if (wasDetailOpen.current && !detailOpen) {
+      window.location.reload()
+    }
+    wasDetailOpen.current = detailOpen
+  }, [detailOpen])
 
   // Fetch users
   const fetchUsers = useCallback(async () => {
