@@ -305,11 +305,12 @@ function OrderDetailDialog({
                 <p className='text-muted-foreground'>Ngày đặt hàng</p>
                 <p className='font-medium'>
                   {new Date(order.createdAt).toLocaleDateString('vi-VN', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
+                    timeZone: 'Asia/Ho_Chi_Minh',
                     hour: '2-digit',
                     minute: '2-digit',
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric',
                   })}
                 </p>
               </div>
@@ -682,7 +683,7 @@ export function AdminOrdersClient({
                           </TableCell>
                           <TableCell>
                             <span className='text-sm'>
-                              {new Date(order.createdAt).toLocaleDateString('vi-VN')}
+                              {new Date(order.createdAt).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
                             </span>
                           </TableCell>
                           <TableCell>

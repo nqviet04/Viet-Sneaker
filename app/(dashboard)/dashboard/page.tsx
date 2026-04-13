@@ -94,7 +94,7 @@ export default async function DashboardPage() {
                     <div>
                       <p className='font-medium'>Đơn #{order.id.slice(-8)}</p>
                       <p className='text-sm text-muted-foreground'>
-                        {new Date(order.createdAt).toLocaleDateString('vi-VN')}
+                        {new Date(order.createdAt).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
                       </p>
                     </div>
                     <div className='text-right'>

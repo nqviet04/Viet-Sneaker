@@ -545,6 +545,7 @@ export default function AdminAnalyticsPage() {
             .filter((o: any) => o.status === 'DELIVERED')
             .forEach((o: any) => {
               const date = new Date(o.createdAt).toLocaleDateString('vi-VN', {
+                timeZone: 'Asia/Ho_Chi_Minh',
                 month: 'short',
                 day: 'numeric',
               })

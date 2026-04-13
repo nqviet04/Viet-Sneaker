@@ -168,6 +168,7 @@ function UserDetailDialog({
               <Calendar className='h-5 w-5 mx-auto mb-1 text-muted-foreground' />
               <p className='text-sm font-bold'>
                 {new Date(user.createdAt).toLocaleDateString('vi-VN', {
+                  timeZone: 'Asia/Ho_Chi_Minh',
                   month: 'short',
                   year: 'numeric',
                 })}
@@ -470,7 +471,7 @@ export function AdminUsersClient({ currentUserId }: { currentUserId: string }) {
                           </TableCell>
                           <TableCell>
                             <span className='text-sm'>
-                              {new Date(user.createdAt).toLocaleDateString('vi-VN')}
+                              {new Date(user.createdAt).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
                             </span>
                           </TableCell>
                           <TableCell>

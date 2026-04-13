@@ -48,7 +48,15 @@ export async function GET(request: NextRequest) {
           address: `${o.shippingAddress.street}, ${o.shippingAddress.city}, ${o.shippingAddress.state} ${o.shippingAddress.postalCode}, ${o.shippingAddress.country}`,
           status: o.status,
           total: o.total,
-          date: o.createdAt.toISOString(),
+          date: (() => {
+            const d = o.createdAt
+            const h = String(d.getHours()).padStart(2, '0')
+            const m = String(d.getMinutes()).padStart(2, '0')
+            const day = String(d.getDate()).padStart(2, '0')
+            const mon = String(d.getMonth() + 1).padStart(2, '0')
+            const y = d.getFullYear()
+            return ` ${h}:${m} ${day}/${mon}/${y}`
+          })(),
         }))
         headers = ['orderId', 'customer', 'email', 'items', 'address', 'status', 'total', 'date']
         break
@@ -86,7 +94,15 @@ export async function GET(request: NextRequest) {
           shoeType: p.shoeType,
           sizes: p.sizes.join(', '),
           colors: p.colors.join(', '),
-          createdAt: p.createdAt.toISOString(),
+          createdAt: (() => {
+            const d = p.createdAt
+            const h = String(d.getHours()).padStart(2, '0')
+            const m = String(d.getMinutes()).padStart(2, '0')
+            const day = String(d.getDate()).padStart(2, '0')
+            const mon = String(d.getMonth() + 1).padStart(2, '0')
+            const y = d.getFullYear()
+            return ` ${h}:${m} ${day}/${mon}/${y}`
+          })(),
         }))
         headers = ['id', 'name', 'brand', 'price', 'originalPrice', 'stock', 'gender', 'shoeType', 'sizes', 'colors', 'createdAt']
         break
@@ -118,7 +134,15 @@ export async function GET(request: NextRequest) {
           email: c.email,
           totalOrders: c._count.orders,
           totalSpent: c.orders.reduce((sum, o) => sum + o.total, 0),
-          joinedAt: c.createdAt.toISOString(),
+          joinedAt: (() => {
+            const d = c.createdAt
+            const h = String(d.getHours()).padStart(2, '0')
+            const m = String(d.getMinutes()).padStart(2, '0')
+            const day = String(d.getDate()).padStart(2, '0')
+            const mon = String(d.getMonth() + 1).padStart(2, '0')
+            const y = d.getFullYear()
+            return ` ${h}:${m} ${day}/${mon}/${y}`
+          })(),
         }))
         headers = ['id', 'name', 'email', 'totalOrders', 'totalSpent', 'joinedAt']
         break
