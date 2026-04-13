@@ -15,8 +15,9 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { Download, FileText, ShoppingCart, TrendingUp, Users, Package } from 'lucide-react'
+import { Download, FileText, ShoppingCart, TrendingUp, Users, Package, Star, Trophy, TrendingDown } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
+import Image from 'next/image'
 
 type ExportType = 'orders' | 'products' | 'customers'
 
@@ -258,6 +259,257 @@ interface AnalyticsData {
   totalRevenue: number
   totalOrders: number
   totalCustomers: number
+  topProducts: TopProduct[]
+  topCustomers: TopCustomer[]
+  revenueComparison: RevenueComparison
+}
+
+interface TopProduct {
+  productId: string
+  productName: string
+  productImage: string | null
+  brand: string | null
+  totalQuantity: number
+  totalRevenue: number
+}
+
+interface TopCustomer {
+  userId: string
+  userName: string
+  userEmail: string
+  userImage: string | null
+  totalSpent: number
+  orderCount: number
+}
+
+interface RevenueComparison {
+  thisMonth: number
+  lastMonth: number
+  percentageChange: number
+  thisMonthOrders: number
+  lastMonthOrders: number
+}
+
+function TopProductsCard({ products }: { products: TopProduct[] }) {
+  if (products.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className='flex items-center gap-2'>
+            <Star className='h-5 w-5 text-amber-500' />
+            Top sản phẩm bán chạy
+          </CardTitle>
+          <CardDescription>Theo số lượng bán ra tháng này</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className='text-sm text-muted-foreground text-center py-8'>
+            Chưa có dữ liệu
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className='flex items-center gap-2'>
+          <Star className='h-5 w-5 text-amber-500' />
+          Top sản phẩm bán chạy
+        </CardTitle>
+        <CardDescription>Theo số lượng bán ra tháng này</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className='space-y-4'>
+          {products.map((product, index) => (
+            <div key={product.productId} className='flex items-center gap-3'>
+              <span className='flex-shrink-0 w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center'>
+                {index + 1}
+              </span>
+              {product.productImage ? (
+                <div className='w-10 h-10 rounded-md overflow-hidden flex-shrink-0 bg-muted'>
+                  <Image
+                    src={product.productImage}
+                    alt={product.productName}
+                    width={40}
+                    height={40}
+                    className='object-cover w-full h-full'
+                  />
+                </div>
+              ) : (
+                <div className='w-10 h-10 rounded-md bg-muted flex items-center justify-center flex-shrink-0'>
+                  <Package className='h-5 w-5 text-muted-foreground' />
+                </div>
+              )}
+              <div className='flex-1 min-w-0'>
+                <p className='text-sm font-medium truncate'>{product.productName}</p>
+                {product.brand && (
+                  <p className='text-xs text-muted-foreground'>{product.brand}</p>
+                )}
+              </div>
+              <div className='text-right flex-shrink-0'>
+                <p className='text-sm font-bold text-green-600'>{product.totalQuantity}</p>
+                <p className='text-xs text-muted-foreground'>đã bán</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function TopCustomersCard({ customers }: { customers: TopCustomer[] }) {
+  if (customers.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className='flex items-center gap-2'>
+            <Trophy className='h-5 w-5 text-purple-500' />
+            Top khách hàng VIP
+          </CardTitle>
+          <CardDescription>Theo tổng chi tiêu tháng này</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className='text-sm text-muted-foreground text-center py-8'>
+            Chưa có dữ liệu
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className='flex items-center gap-2'>
+          <Trophy className='h-5 w-5 text-purple-500' />
+          Top khách hàng VIP
+        </CardTitle>
+        <CardDescription>Theo tổng chi tiêu tháng này</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className='space-y-4'>
+          {customers.map((customer, index) => (
+            <div key={customer.userId} className='flex items-center gap-3'>
+              <span className='flex-shrink-0 w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-xs font-bold flex items-center justify-center'>
+                {index + 1}
+              </span>
+              <div className='w-10 h-10 rounded-full bg-muted overflow-hidden flex-shrink-0 flex items-center justify-center'>
+                {customer.userImage ? (
+                  <Image
+                    src={customer.userImage}
+                    alt={customer.userName}
+                    width={40}
+                    height={40}
+                    className='object-cover w-full h-full'
+                  />
+                ) : (
+                  <Users className='h-5 w-5 text-muted-foreground' />
+                )}
+              </div>
+              <div className='flex-1 min-w-0'>
+                <p className='text-sm font-medium truncate'>{customer.userName}</p>
+                <p className='text-xs text-muted-foreground truncate'>
+                  {customer.orderCount} đơn hàng
+                </p>
+              </div>
+              <div className='text-right flex-shrink-0'>
+                <p className='text-sm font-bold text-purple-600'>
+                  {formatCurrency(customer.totalSpent)}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function RevenueComparisonCard({ comparison }: { comparison: RevenueComparison }) {
+  const isPositive = comparison.percentageChange >= 0
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className='flex items-center gap-2'>
+          {isPositive ? (
+            <TrendingUp className='h-5 w-5 text-green-600' />
+          ) : (
+            <TrendingDown className='h-5 w-5 text-red-500' />
+          )}
+          So sánh doanh thu
+        </CardTitle>
+        <CardDescription>Tháng này so với tháng trước</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className='space-y-6'>
+          {/* Percentage change */}
+          <div className='text-center py-4'>
+            <div
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-lg font-bold ${
+                isPositive
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-red-100 text-red-600'
+              }`}
+            >
+              {isPositive ? (
+                <TrendingUp className='h-5 w-5' />
+              ) : (
+                <TrendingDown className='h-5 w-5' />
+              )}
+              {isPositive ? '+' : ''}
+              {comparison.percentageChange.toFixed(1)}%
+            </div>
+            <p className='text-sm text-muted-foreground mt-2'>
+              {isPositive ? 'tăng' : 'giảm'} so với tháng trước
+            </p>
+          </div>
+
+          {/* Monthly comparison */}
+          <div className='grid grid-cols-2 gap-4'>
+            <div className='bg-muted/50 p-3 rounded-lg'>
+              <p className='text-xs text-muted-foreground mb-1'>Tháng này</p>
+              <p className='text-lg font-bold text-green-600'>
+                {formatCurrency(comparison.thisMonth)}
+              </p>
+              <p className='text-xs text-muted-foreground'>
+                {comparison.thisMonthOrders} đơn hàng
+              </p>
+            </div>
+            <div className='bg-muted/50 p-3 rounded-lg'>
+              <p className='text-xs text-muted-foreground mb-1'>Tháng trước</p>
+              <p className='text-lg font-bold text-muted-foreground'>
+                {formatCurrency(comparison.lastMonth)}
+              </p>
+              <p className='text-xs text-muted-foreground'>
+                {comparison.lastMonthOrders} đơn hàng
+              </p>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function AdvancedStats({
+  topProducts,
+  topCustomers,
+  revenueComparison,
+}: {
+  topProducts: TopProduct[]
+  topCustomers: TopCustomer[]
+  revenueComparison: RevenueComparison
+}) {
+  return (
+    <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+      <TopProductsCard products={topProducts} />
+      <TopCustomersCard customers={topCustomers} />
+      <RevenueComparisonCard comparison={revenueComparison} />
+    </div>
+  )
 }
 
 export default function AdminAnalyticsPage() {
@@ -267,14 +519,16 @@ export default function AdminAnalyticsPage() {
   useState(() => {
     async function fetchData() {
       try {
-        const [ordersRes, usersRes] = await Promise.all([
+        const [ordersRes, usersRes, analyticsRes] = await Promise.all([
           fetch('/api/admin/orders'),
           fetch('/api/admin/users'),
+          fetch('/api/admin/analytics'),
         ])
 
-        const [ordersData, usersData] = await Promise.all([
+        const [ordersData, usersData, analyticsResult] = await Promise.all([
           ordersRes.json(),
           usersRes.json(),
+          analyticsRes.json(),
         ])
 
         // Calculate total revenue from orders
@@ -307,6 +561,15 @@ export default function AdminAnalyticsPage() {
           totalRevenue,
           totalOrders: ordersData.total || 0,
           totalCustomers: usersData.total || 0,
+          topProducts: analyticsResult.topProducts || [],
+          topCustomers: analyticsResult.topCustomers || [],
+          revenueComparison: analyticsResult.revenueComparison || {
+            thisMonth: 0,
+            lastMonth: 0,
+            percentageChange: 0,
+            thisMonthOrders: 0,
+            lastMonthOrders: 0,
+          },
         })
       } catch (error) {
         console.error('Error fetching analytics data:', error)
@@ -381,6 +644,21 @@ export default function AdminAnalyticsPage() {
           </Card>
         )}
       </div>
+
+      {/* Advanced Analytics */}
+      {!loading && analyticsData && (
+        <div>
+          <h3 className='text-lg font-semibold mb-4 flex items-center gap-2'>
+            <Star className='h-5 w-5' />
+            Thống kê nâng cao
+          </h3>
+          <AdvancedStats
+            topProducts={analyticsData.topProducts}
+            topCustomers={analyticsData.topCustomers}
+            revenueComparison={analyticsData.revenueComparison}
+          />
+        </div>
+      )}
     </div>
   )
 }
