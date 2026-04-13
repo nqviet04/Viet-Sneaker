@@ -100,7 +100,7 @@ interface Order {
     email: string
     image: string | null
   }
-  address: Address
+  shippingAddress: Address
   items: OrderItem[]
   _count?: { items: number }
 }
@@ -145,6 +145,11 @@ const statusConfig: Record<string, { label: string; color: string; icon: React.E
     color: 'bg-red-100 text-red-800 border-red-200',
     icon: XCircle,
   },
+  REFUNDED: {
+    label: 'Đã hoàn tiền',
+    color: 'bg-orange-100 text-orange-800 border-orange-200',
+    icon: DollarSign,
+  },
   // Handle lowercase from database
   pending: {
     label: 'Chờ xử lý',
@@ -171,20 +176,27 @@ const statusConfig: Record<string, { label: string; color: string; icon: React.E
     color: 'bg-red-100 text-red-800 border-red-200',
     icon: XCircle,
   },
+  refunded: {
+    label: 'Đã hoàn tiền',
+    color: 'bg-orange-100 text-orange-800 border-orange-200',
+    icon: DollarSign,
+  },
 }
 
 const statusTransitions: Record<string, string[]> = {
   PENDING: ['PROCESSING', 'CANCELLED'],
   PROCESSING: ['SHIPPED', 'CANCELLED'],
   SHIPPED: ['DELIVERED', 'CANCELLED'],
-  DELIVERED: [],
+  DELIVERED: ['REFUNDED', 'CANCELLED'],
   CANCELLED: [],
+  REFUNDED: [],
   // Handle lowercase
   pending: ['processing', 'cancelled'],
   processing: ['shipped', 'cancelled'],
   shipped: ['delivered', 'cancelled'],
-  delivered: [],
+  delivered: ['refunded', 'cancelled'],
   cancelled: [],
+  refunded: [],
 }
 
 // ============================================
@@ -243,12 +255,24 @@ function OrderDetailDialog({
   const handleRefund = async () => {
     setRefunding(true)
     try {
-      await new Promise((r) => setTimeout(r, 1000))
+      const res = await fetch(`/api/admin/orders/${order.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'REFUNDED' }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Hoàn tiền thất bại')
+      }
+
       toast({
         title: 'Đã hoàn tiền',
         description: `Đã hoàn ${formatCurrency(order.total)} cho đơn hàng này.`,
       })
       setShowRefundConfirm(false)
+      onStatusUpdate()
+      onOpenChange(false)
     } catch (error: any) {
       toast({
         title: 'Lỗi',
@@ -322,11 +346,11 @@ function OrderDetailDialog({
             {/* Shipping Address */}
             <div className='rounded-lg border p-4'>
               <h3 className='font-semibold mb-3'>Địa Chỉ Giao Hàng</h3>
-              <p className='text-sm'>{order.address.street}</p>
+              <p className='text-sm'>{order.shippingAddress.street}</p>
               <p className='text-sm'>
-                {order.address.city}, {order.address.state} {order.address.postalCode}
+                {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postalCode}
               </p>
-              <p className='text-sm text-muted-foreground'>{order.address.country}</p>
+              <p className='text-sm text-muted-foreground'>{order.shippingAddress.country}</p>
             </div>
 
             {/* Order Items */}
@@ -371,18 +395,20 @@ function OrderDetailDialog({
 
             {/* Actions */}
             <div className='flex flex-wrap gap-2 justify-end'>
-              {/* Status Transitions */}
-              {statusTransitions[order.status]?.map((newStatus) => (
-                <Button
-                  key={newStatus}
-                  variant='outline'
-                  size='sm'
-                  onClick={() => handleStatusChange(newStatus)}
-                  disabled={loading}
-                >
-                  {loading ? 'Đang cập nhật...' : `Đổi sang ${statusConfig[newStatus]?.label || newStatus}`}
-                </Button>
-              ))}
+              {/* Status Transitions - exclude REFUNDED as it has its own confirmation */}
+              {statusTransitions[order.status]
+                ?.filter((newStatus) => newStatus !== 'REFUNDED' && newStatus !== 'refunded')
+                ?.map((newStatus) => (
+                  <Button
+                    key={newStatus}
+                    variant='outline'
+                    size='sm'
+                    onClick={() => handleStatusChange(newStatus)}
+                    disabled={loading}
+                  >
+                    {loading ? 'Đang cập nhật...' : `Đổi sang ${statusConfig[newStatus]?.label || newStatus}`}
+                  </Button>
+                ))}
 
               {/* Refund (only for delivered orders) */}
               {(order.status === 'DELIVERED' || order.status === 'delivered') && (
@@ -656,7 +682,7 @@ export function AdminOrdersClient({
                           </TableCell>
                           <TableCell>
                             <span className='text-sm'>
-                              {new Date(order.createdAt).toLocaleDateString()}
+                              {new Date(order.createdAt).toLocaleDateString('vi-VN')}
                             </span>
                           </TableCell>
                           <TableCell>

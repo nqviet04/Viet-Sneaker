@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
         take: ITEMS_PER_PAGE,
         include: {
           user: { select: { id: true, name: true, email: true, image: true } },
-          address: true,
+          shippingAddress: true,
           items: {
             include: {
               product: { select: { name: true, images: true, brand: true } },

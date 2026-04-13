@@ -26,7 +26,7 @@ export async function GET(
             createdAt: true,
           },
         },
-        address: true,
+        shippingAddress: true,
         items: {
           include: {
             product: {
@@ -77,7 +77,7 @@ export async function PATCH(
       data: { status },
       include: {
         user: { select: { name: true, email: true } },
-        address: true,
+        shippingAddress: true,
         items: {
           include: {
             product: { select: { name: true } },

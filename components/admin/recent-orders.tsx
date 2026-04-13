@@ -79,7 +79,7 @@ export function RecentOrders({ orders }: RecentOrdersProps) {
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  {new Date(order.createdAt).toLocaleDateString()}
+                  {new Date(order.createdAt).toLocaleDateString('vi-VN')}
                 </TableCell>
                 <TableCell className='text-right'>
                   <DropdownMenu>
