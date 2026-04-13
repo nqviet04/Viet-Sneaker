@@ -138,9 +138,6 @@ export function LowStockAlerts({ lowStock, outOfStock }: LowStockAlertsProps) {
                         )}
                       </div>
                     </div>
-                    <Button size='sm' variant='outline' className='h-7 text-xs flex-shrink-0 ml-2'>
-                      Restock
-                    </Button>
                   </div>
                 )
               })}
@@ -187,9 +184,6 @@ export function LowStockAlerts({ lowStock, outOfStock }: LowStockAlertsProps) {
                         )}
                       </div>
                     </div>
-                    <Button size='sm' variant='outline' className='h-7 text-xs flex-shrink-0 ml-2'>
-                      Update
-                    </Button>
                   </div>
                 )
               })}
