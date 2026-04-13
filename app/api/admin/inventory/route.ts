@@ -57,14 +57,9 @@ export async function GET(req: Request) {
     // Filter by status
     let filtered = updatedProducts
     if (status === 'low') {
-      filtered = updatedProducts.filter((p) =>
-        p.sizeStock.some((ss) => ss.stock > 0 && ss.stock <= 5) ||
-        (p.stock > 0 && p.stock <= 5 && p.sizeStock.length === 0)
-      )
+      filtered = updatedProducts.filter((p) => p.stock > 0 && p.stock <= 5)
     } else if (status === 'out') {
-      filtered = updatedProducts.filter((p) =>
-        p.sizeStock.some((ss) => ss.stock === 0) || p.stock === 0
-      )
+      filtered = updatedProducts.filter((p) => p.stock === 0)
     }
 
     return NextResponse.json({ products: filtered, total: filtered.length })

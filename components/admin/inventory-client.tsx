@@ -263,9 +263,9 @@ export function InventoryClient() {
 
   const stats = {
     total: products.length,
-    outOfStock: products.filter((p) => p.sizes.some((s) => s.isOut) || p.totalStock === 0).length,
-    lowStock: products.filter((p) => p.sizes.some((s) => s.isLow) && !p.sizes.some((s) => s.isOut)).length,
-    healthy: products.filter((p) => p.sizes.every((s) => s.stock > 5)).length,
+    outOfStock: products.filter((p) => p.totalStock === 0).length,
+    lowStock: products.filter((p) => p.totalStock > 0 && p.totalStock <= 5).length,
+    healthy: products.filter((p) => p.totalStock > 5).length,
   }
 
   return (
