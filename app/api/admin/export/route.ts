@@ -16,7 +16,10 @@ export async function GET(request: NextRequest) {
     const endDateParam = searchParams.get('endDate')
 
     const startDate = startDateParam ? new Date(startDateParam) : new Date(0)
-    const endDate = endDateParam ? new Date(endDateParam) : new Date()
+    // Set end date to end of day to include all data from that day
+    const endDate = endDateParam
+      ? new Date(endDateParam + 'T23:59:59.999Z')
+      : new Date()
 
     let data: any[] = []
     let headers: string[] = []
@@ -32,7 +35,7 @@ export async function GET(request: NextRequest) {
             items: {
               include: { product: { select: { name: true } } },
             },
-            address: true,
+            shippingAddress: true,
           },
           orderBy: { createdAt: 'desc' },
         })
@@ -42,7 +45,7 @@ export async function GET(request: NextRequest) {
           customer: o.user.name || 'Guest',
           email: o.user.email,
           items: o.items.map((i) => `${i.product.name} x${i.quantity}`).join('; '),
-          address: `${o.address.street}, ${o.address.city}, ${o.address.state} ${o.address.postalCode}, ${o.address.country}`,
+          address: `${o.shippingAddress.street}, ${o.shippingAddress.city}, ${o.shippingAddress.state} ${o.shippingAddress.postalCode}, ${o.shippingAddress.country}`,
           status: o.status,
           total: o.total,
           date: o.createdAt.toISOString(),
