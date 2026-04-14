@@ -46,7 +46,7 @@ const PROMO_BANNERS = [
     cta: { label: 'Mua Ngay', href: '/products' },
   },
   {
-    image: 'https://images.unsplash.com/photo-1460353581641-37baddd0b49c?w=1400&h=600&fit=crop',
+    image: 'https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=800&h=800&fit=crop',
     title: 'Miễn Phí Vận Chuyển',
     subtitle: 'Cho đơn hàng từ ₫2.500.000',
     cta: { label: 'Mua Ngay', href: '/products' },

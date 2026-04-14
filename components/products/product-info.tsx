@@ -41,16 +41,29 @@ interface ProductInfoProps {
     reviews: { rating: number }[]
     sizeStock: SizeStock[]
   }
+  selectedColor?: string
+  onColorChange?: (color: string) => void
 }
 
-export function ProductInfo({ product }: ProductInfoProps) {
+export function ProductInfo({ product, selectedColor: externalColor, onColorChange: externalOnColorChange }: ProductInfoProps) {
   const [selectedSize, setSelectedSize] = useState('')
-  const [selectedColor, setSelectedColor] = useState('')
+  const [internalColor, setInternalColor] = useState('')
   const [quantity, setQuantity] = useState('1')
   const [sizeError, setSizeError] = useState(false)
   const [colorError, setColorError] = useState(false)
   const cart = useCart()
   const { toast } = useToast()
+
+  const selectedColor = externalColor !== undefined ? externalColor : internalColor
+
+  const handleColorChange = (color: string) => {
+    if (externalOnColorChange) {
+      externalOnColorChange(color)
+    } else {
+      setInternalColor(color)
+      setColorError(false)
+    }
+  }
 
   // Calculate average rating
   const averageRating = product.reviews.length
@@ -183,10 +196,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
           <ColorSelector
             availableColors={product.colors}
             selectedColor={selectedColor}
-            onColorChange={(color) => {
-              setSelectedColor(color)
-              setColorError(false)
-            }}
+            onColorChange={handleColorChange}
             error={colorError}
           />
         )}

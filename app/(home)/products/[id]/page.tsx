@@ -1,8 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import prisma from '@/lib/prisma'
-import { ProductGallery } from '@/components/products/product-gallery'
-import { ProductInfo } from '@/components/products/product-info'
+import { ProductDetail } from '@/components/products/product-detail'
 import { ProductReviews } from '@/components/products/product-reviews'
 import { ProductRelated } from '@/components/products/product-related'
 import { ChevronRight, Home } from 'lucide-react'
@@ -66,13 +65,7 @@ export default async function ProductPage(props: ProductPageProps) {
       </nav>
 
       {/* Product Grid */}
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16'>
-        {/* Product Gallery */}
-        <ProductGallery images={product.images} />
-
-        {/* Product Information */}
-        <ProductInfo product={product} />
-      </div>
+      <ProductDetail product={product} />
 
       {/* Size Guide Link */}
       <div className='mb-8'>
