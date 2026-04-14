@@ -17,6 +17,7 @@ interface ProductDetailProps {
     price: number
     stock: number
     images: string[]
+    colorImages: Record<string, string[]> | null
     brand: string
     sizes: string[]
     colors: string[]
@@ -36,7 +37,15 @@ export function ProductDetail({ product }: ProductDetailProps) {
       return product.images
     }
 
-    const colorIndex = product.colors.indexOf(color.toLowerCase())
+    const colorLower = color.toLowerCase()
+    
+    // Ưu tiên lấy từ colorImages nếu có
+    if (product.colorImages && product.colorImages[colorLower]) {
+      return product.colorImages[colorLower]
+    }
+
+    // Fallback: chia đều từ images
+    const colorIndex = product.colors.indexOf(colorLower)
     if (colorIndex === -1) {
       return product.images
     }

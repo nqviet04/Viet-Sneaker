@@ -26,6 +26,7 @@ interface ProductCardProps {
     description: string
     price: number
     images: string[]
+    colorImages?: Record<string, string[]> | null
     brand?: string
     gender?: string
     shoeType?: string
@@ -39,6 +40,7 @@ interface ProductCardProps {
   className?: string
   showBadges?: boolean
   compact?: boolean
+  selectedColor?: string
 }
 
 export function ProductCard({
@@ -46,6 +48,7 @@ export function ProductCard({
   className,
   showBadges = false,
   compact = false,
+  selectedColor,
 }: ProductCardProps) {
   const cart = useCart()
   const { toast } = useToast()
@@ -62,6 +65,20 @@ export function ProductCard({
   const defaultColor = product.colors?.[0] || 'default'
   const isOutOfStock = (product.stock ?? 0) === 0
 
+  // Lấy ảnh hiển thị dựa trên màu được chọn
+  const getDisplayImage = (): string => {
+    if (selectedColor && product.colorImages) {
+      const colorLower = selectedColor.toLowerCase()
+      const colorSpecificImages = product.colorImages[colorLower]
+      if (colorSpecificImages && colorSpecificImages.length > 0) {
+        return colorSpecificImages[0]
+      }
+    }
+    return product.images[0] || ''
+  }
+
+  const displayImage = getDisplayImage()
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -75,11 +92,14 @@ export function ProductCard({
       return
     }
 
+    // Lấy ảnh đúng theo màu đã chọn
+    const imageForColor = getDisplayImage()
+
     cart.addItem({
       productId: product.id,
       name: product.name,
       price: product.price,
-      image: product.images[0],
+      image: imageForColor,
       quantity: 1,
       selectedSize: defaultSize,
       selectedColor: defaultColor,
@@ -100,9 +120,9 @@ export function ProductCard({
     <Card className={cn('overflow-hidden group flex flex-col', className)}>
       <Link href={'/products/' + product.id} className='flex flex-col flex-1'>
         <div className='aspect-square overflow-hidden relative'>
-          {product.images[0] ? (
+          {displayImage ? (
             <Image
-              src={product.images[0]}
+              src={displayImage}
               alt={product.name}
               fill
               sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'

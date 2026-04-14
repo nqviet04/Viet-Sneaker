@@ -56,6 +56,9 @@ export default function ProductsPage() {
   const colors = searchParams.get('colors')
   if (colors) activeFilters.push({ key: 'colors', label: 'Màu sắc', values: colors.split(',') })
 
+  // Get first selected color for displaying correct product images
+  const selectedColor = colors ? colors.split(',')[0] : undefined
+
   const gender = searchParams.get('gender')
   if (gender) activeFilters.push({ key: 'gender', label: 'Giới tính', values: [gender === 'MEN' ? 'Nam' : gender === 'WOMEN' ? 'Nữ' : 'Unisex'] })
 
@@ -68,8 +71,8 @@ export default function ProductsPage() {
   const minPrice = searchParams.get('minPrice')
   const maxPrice = searchParams.get('maxPrice')
   if (minPrice || maxPrice) {
-    const min = minPrice ? parseInt(minPrice).toLocaleString() : '0'
-    const max = maxPrice ? parseInt(maxPrice).toLocaleString() : '∞'
+    const min = minPrice ? parseInt(minPrice).toLocaleString('vi-VN') : '0'
+    const max = maxPrice ? parseInt(maxPrice).toLocaleString('vi-VN') : '∞'
     activeFilters.push({
       key: 'price',
       label: 'Price',
@@ -164,6 +167,7 @@ export default function ProductsPage() {
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
+            selectedColor={selectedColor}
           />
         </main>
       </div>

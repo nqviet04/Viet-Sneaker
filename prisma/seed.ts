@@ -19,6 +19,36 @@ import { subDays, addHours, addMinutes } from 'date-fns'
 const prisma = new PrismaClient()
 
 // ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+/**
+ * Tạo colorImages từ images và colors
+ * Chia đều images cho các màu sắc
+ * Ví dụ: 6 images, 3 colors → mỗi color được 2 images
+ */
+function generateColorImages(images: string[], colors: string[]): Record<string, string[]> {
+  if (!images.length || !colors.length) {
+    return {}
+  }
+
+  const imagesPerColor = Math.ceil(images.length / colors.length)
+  const colorImages: Record<string, string[]> = {}
+
+  colors.forEach((color, index) => {
+    const startIndex = index * imagesPerColor
+    const endIndex = Math.min(startIndex + imagesPerColor, images.length)
+    const colorSpecificImages = images.slice(startIndex, endIndex)
+    
+    if (colorSpecificImages.length > 0) {
+      colorImages[color.toLowerCase()] = colorSpecificImages
+    }
+  })
+
+  return colorImages
+}
+
+// ============================================
 // DỮ LIỆU SẢN PHẨM
 // ============================================
 
@@ -35,9 +65,9 @@ const SHOE_PRODUCTS = [
     price: 3490000,
     originalPrice: 4290000,
     images: [
-      'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxpHXEgPm8dNXpDiHclKSj0nftgFbkAmuEhyq1?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxX2S2Tnewk7U6nMxCmi09AQIlzvFfeT3uWRZp?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxCKlXrhJgJAev7SQUrqBRjifW4utwYo0zPFLV?w=800&h=800&fit=crop',
     ],
     brand: Brand.NIKE,
     sizes: ['38', '39', '40', '41', '42', '43', '44'],
@@ -52,8 +82,8 @@ const SHOE_PRODUCTS = [
     price: 2790000,
     originalPrice: null,
     images: [
-      'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYx0BOmcagGDax1cj8QgRPJnuyBdHX7CEMlSVzN?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxfuv2ZU9trLuPWFe58kciN7gGXdz4DChva2Jw?w=800&h=800&fit=crop',
     ],
     brand: Brand.NIKE,
     sizes: ['38', '39', '40', '41', '42', '43', '44', '45'],
@@ -68,8 +98,9 @@ const SHOE_PRODUCTS = [
     price: 3990000,
     originalPrice: 4590000,
     images: [
-      'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYx5obpW5zDNLEyqJ7IpBxS4egb6UViczfmswr5?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxEThIEaMLDNh3za5nu0fAkvsJqV1RZcx8UeQ2?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxUNQT26KuGljFDqK7JgB2ivHEVAsh5wnSc96o?w=800&h=800&fit=crop',
     ],
     brand: Brand.NIKE,
     sizes: ['39', '40', '41', '42', '43', '44'],
@@ -84,8 +115,9 @@ const SHOE_PRODUCTS = [
     price: 2890000,
     originalPrice: null,
     images: [
-      'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxn4wvvMcVjQLuG5IZ8ayp0R6if7lcosUPrwDN?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxJ1TZEHWnNBA25jgOe1RTvcrYoKMEDV63Xmb9?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxeiTYkgaJLqDOuGChZpsRT2w5fYHFnEPKx3Si?w=800&h=800&fit=crop',
     ],
     brand: Brand.NIKE,
     sizes: ['36', '37', '38', '39', '40', '41', '42'],
@@ -100,8 +132,8 @@ const SHOE_PRODUCTS = [
     price: 4590000,
     originalPrice: 5190000,
     images: [
-      'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxoN77dRyWVYJ1r7OTnqU5CIckmPZEDHjwp9fQ?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxpIulHQm8dNXpDiHclKSj0nftgFbkAmuEhyq1?w=800&h=800&fit=crop',
     ],
     brand: Brand.NIKE,
     sizes: ['39', '40', '41', '42', '43', '44'],
@@ -116,12 +148,13 @@ const SHOE_PRODUCTS = [
     price: 2490000,
     originalPrice: 2990000,
     images: [
-      'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1595341884576-1cc805e7d4c8?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxLgc7hksMeQEa3SBfvuT7kDghryWHF8ZcY24o?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYx2PlBAaT0clBI03aqiukwAOQZU5gbpeGSxnyW?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxAHgrbzEnecZ2FlPtmXb6hYw470zOajAqd9gC?w=800&h=800&fit=crop',
     ],
     brand: Brand.NIKE,
     sizes: ['38', '39', '40', '41', '42', '43', '44'],
-    colors: ['white', 'black', 'brown'],
+    colors: ['white', 'black', 'red'],
     gender: Gender.UNISEX,
     shoeType: ShoeType.CASUAL,
   },
@@ -132,8 +165,10 @@ const SHOE_PRODUCTS = [
     price: 3890000,
     originalPrice: null,
     images: [
-      'https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxlexwDpWOOIYklaAnSfP6JTvb9jGZewcLhtF8?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYx0BBjQvBgGDax1cj8QgRPJnuyBdHX7CEMlSVz?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYx2nClzU0clBI03aqiukwAOQZU5gbpeGSxnyWf?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxzgXVftK28c1GHIQnPf6Wh4qiZ9ASoaNXgrxp?w=800&h=800&fit=crop',
     ],
     brand: Brand.NIKE,
     sizes: ['39', '40', '41', '42', '43', '44'],
@@ -167,8 +202,9 @@ const SHOE_PRODUCTS = [
     price: 4290000,
     originalPrice: 4990000,
     images: [
-      'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxE81ZKRWMLDNh3za5nu0fAkvsJqV1RZcx8UeQ?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxcDUkLwhZxkL40v9i5fu1UAQRMysCVlDqWapX?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYx83KDkguxO1PTmAYcZKoqEL4pv5Sl63szfCQI?w=800&h=800&fit=crop',
     ],
     brand: Brand.ADIDAS,
     sizes: ['38', '39', '40', '41', '42', '43', '44', '45'],
@@ -183,8 +219,9 @@ const SHOE_PRODUCTS = [
     price: 2290000,
     originalPrice: null,
     images: [
-      'https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxhZIm76w2UJyvCSrzBQXKi97wYefZgsokERq1?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYx35xaYGtOfCj6aQiNV0qUbspPcm39MvGydTB5?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxghKBx4Pqkhb1xTYVEr9NlXSaeuM2cByiPIOH?w=800&h=800&fit=crop',
     ],
     brand: Brand.ADIDAS,
     sizes: ['36', '37', '38', '39', '40', '41', '42', '43', '44'],
@@ -199,8 +236,9 @@ const SHOE_PRODUCTS = [
     price: 2490000,
     originalPrice: 2790000,
     images: [
-      'https://images.unsplash.com/photo-1584735175315-9d5df23860e6?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1560769629-975ec94e7a86?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxyfHlxhvRHlbpsc8UkKYxmtqLBOgyjCuXnSZ0?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxCZNWb6JgJAev7SQUrqBRjifW4utwYo0zPFLV?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxpn3r9bm8dNXpDiHclKSj0nftgFbkAmuEhyq1?w=800&h=800&fit=crop',
     ],
     brand: Brand.ADIDAS,
     sizes: ['38', '39', '40', '41', '42', '43', '44'],
@@ -215,8 +253,10 @@ const SHOE_PRODUCTS = [
     price: 3290000,
     originalPrice: 3890000,
     images: [
-      'https://images.unsplash.com/photo-1587563871167-1ee9c731aefb?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1605408499391-6368c628ef42?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxa7Mn5LDTl4cgPLyt2n9wekdNYprHx13RSshM?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxBuKgOxURhAuwKf6I8trU2ZEkgjvMleJXNTSY?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYx7aaBhS50QBixbMs2jPhGl5nqFYTAytWrRpzK?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYx0BFaleEgGDax1cj8QgRPJnuyBdHX7CEMlSVz?w=800&h=800&fit=crop',
     ],
     brand: Brand.ADIDAS,
     sizes: ['38', '39', '40', '41', '42', '43', '44'],
@@ -231,8 +271,8 @@ const SHOE_PRODUCTS = [
     price: 2690000,
     originalPrice: null,
     images: [
-      'https://images.unsplash.com/photo-1595341884576-1cc805e7d4c8?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1612902666506-4a6a0b36a77f?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYx8CbEd9uxO1PTmAYcZKoqEL4pv5Sl63szfCQI?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxxNzbmNFIj15vP9l8tAVgRa3cMQEhXzSdYWr6?w=800&h=800&fit=crop',
     ],
     brand: Brand.ADIDAS,
     sizes: ['38', '39', '40', '41', '42', '43', '44'],
@@ -247,8 +287,9 @@ const SHOE_PRODUCTS = [
     price: 5590000,
     originalPrice: null,
     images: [
-      'https://images.unsplash.com/photo-1539185441755-769473a23570?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxfB2nsQ9trLuPWFe58kciN7gGXdz4DChva2Jw?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxhnUuXFw2UJyvCSrzBQXKi97wYefZgsokERq1?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxYBgHLA7xlAoU7V60Y1TZWeFfvOnIbtQ4CjND?w=800&h=800&fit=crop',
     ],
     brand: Brand.ADIDAS,
     sizes: ['39', '40', '41', '42', '43', '44'],
@@ -263,8 +304,8 @@ const SHOE_PRODUCTS = [
     price: 1990000,
     originalPrice: 2390000,
     images: [
-      'https://images.unsplash.com/photo-1552346154-21d32810aba3?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxpFqUxUm8dNXpDiHclKSj0nftgFbkAmuEhyq1?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYx0Uw8w3gGDax1cj8QgRPJnuyBdHX7CEMlSVzN?w=800&h=800&fit=crop',
     ],
     brand: Brand.ADIDAS,
     sizes: ['36', '37', '38', '39', '40', '41', '42', '43', '44'],
@@ -279,12 +320,12 @@ const SHOE_PRODUCTS = [
     price: 3790000,
     originalPrice: 4290000,
     images: [
-      'https://images.unsplash.com/photo-1604682320579-0df1996b4d8e?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1579338559194-a162d19bf842?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYx8Brxj7uxO1PTmAYcZKoqEL4pv5Sl63szfCQI?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxcMY0l4hZxkL40v9i5fu1UAQRMysCVlDqWapX?w=800&h=800&fit=crop',
     ],
     brand: Brand.ADIDAS,
     sizes: ['39', '40', '41', '42', '43', '44'],
-    colors: ['white', 'black', 'blue'],
+    colors: ['black', 'blue'],
     gender: Gender.MEN,
     shoeType: ShoeType.RUNNING,
   },
@@ -297,12 +338,13 @@ const SHOE_PRODUCTS = [
     price: 1890000,
     originalPrice: 2190000,
     images: [
-      'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxzU8hSr28c1GHIQnPf6Wh4qiZ9ASoaNXgrxpk?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxvdphx0CvEToC26wpm59iOPsxJgK8bHGeDIfQ?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxyDZFE0vRHlbpsc8UkKYxmtqLBOgyjCuXnSZ0?w=800&h=800&fit=crop',
     ],
     brand: Brand.PUMA,
     sizes: ['38', '39', '40', '41', '42', '43', '44'],
-    colors: ['black', 'brown', 'navy', 'red'],
+    colors: ['black', 'brown', 'red'],
     gender: Gender.UNISEX,
     shoeType: ShoeType.CASUAL,
   },
@@ -313,12 +355,13 @@ const SHOE_PRODUCTS = [
     price: 2690000,
     originalPrice: null,
     images: [
-      'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxu1ERNZ4a5T81D23VXxAmHQRoCMPvtcF4WzOg?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxXDqLWOmewk7U6nMxCmi09AQIlzvFfeT3uWRZ?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxVwrr98YItxjGnLONlwZUWRQEpm02i5hba61X?w=800&h=800&fit=crop',
     ],
     brand: Brand.PUMA,
     sizes: ['38', '39', '40', '41', '42', '43'],
-    colors: ['white', 'black', 'blue', 'red'],
+    colors: ['white', 'black', 'red'],
     gender: Gender.UNISEX,
     shoeType: ShoeType.CASUAL,
   },
@@ -329,12 +372,12 @@ const SHOE_PRODUCTS = [
     price: 1590000,
     originalPrice: null,
     images: [
-      'https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxm75qoUmV0PRiEtDJVTAglek567rvGjCLuoFZ?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxzUa3QE28c1GHIQnPf6Wh4qiZ9ASoaNXgrxpk?w=800&h=800&fit=crop',
     ],
     brand: Brand.PUMA,
     sizes: ['36', '37', '38', '39', '40', '41', '42'],
-    colors: ['black', 'navy', 'green'],
+    colors: ['black', 'green'],
     gender: Gender.WOMEN,
     shoeType: ShoeType.CASUAL,
   },
@@ -345,8 +388,8 @@ const SHOE_PRODUCTS = [
     price: 1390000,
     originalPrice: 1690000,
     images: [
-      'https://images.unsplash.com/photo-1612902666506-4a6a0b36a77f?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1552346154-21d32810aba3?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxWiGBILes6kWyrKRo5O3Gm1wJUqL9NStzxvji?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxgMa1pgPqkhb1xTYVEr9NlXSaeuM2cByiPIOH?w=800&h=800&fit=crop',
     ],
     brand: Brand.PUMA,
     sizes: ['39', '40', '41', '42', '43', '44'],
@@ -361,12 +404,12 @@ const SHOE_PRODUCTS = [
     price: 2290000,
     originalPrice: 2590000,
     images: [
-      'https://images.unsplash.com/photo-1460353581641-37baddd0b49c?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxLMlETWsMeQEa3SBfvuT7kDghryWHF8ZcY24o?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYx8rcqjxXuxO1PTmAYcZKoqEL4pv5Sl63szfCQ?w=800&h=800&fit=crop',
     ],
     brand: Brand.PUMA,
     sizes: ['39', '40', '41', '42', '43'],
-    colors: ['white', 'black', 'grey'],
+    colors: ['white', 'black'],
     gender: Gender.MEN,
     shoeType: ShoeType.RUNNING,
   },
@@ -377,8 +420,8 @@ const SHOE_PRODUCTS = [
     price: 2090000,
     originalPrice: null,
     images: [
-      'https://images.unsplash.com/photo-1595341884576-1cc805e7d4c8?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1560769629-975ec94e7a86?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxBJRwkDURhAuwKf6I8trU2ZEkgjvMleJXNTSY?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxlebRvNHOOIYklaAnSfP6JTvb9jGZewcLhtF8?w=800&h=800&fit=crop',
     ],
     brand: Brand.PUMA,
     sizes: ['38', '39', '40', '41', '42', '43'],
@@ -393,12 +436,12 @@ const SHOE_PRODUCTS = [
     price: 1790000,
     originalPrice: null,
     images: [
-      'https://images.unsplash.com/photo-1584735175315-9d5df23860e6?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1604682320579-0df1996b4d8e?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxapTVJyDTl4cgPLyt2n9wekdNYprHx13RSshM?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYx50D0E1ezDNLEyqJ7IpBxS4egb6UViczfmswr?w=800&h=800&fit=crop',
     ],
     brand: Brand.PUMA,
     sizes: ['36', '37', '38', '39', '40'],
-    colors: ['pink', 'white', 'black'],
+    colors: ['pink', 'white'],
     gender: Gender.WOMEN,
     shoeType: ShoeType.CASUAL,
   },
@@ -409,12 +452,12 @@ const SHOE_PRODUCTS = [
     price: 3490000,
     originalPrice: null,
     images: [
-      'https://images.unsplash.com/photo-1579338559194-a162d19bf842?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYx19VtsN8lDj8q9VNCWctvGJO7urpAmh6yZe2k?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxzQ7JDd28c1GHIQnPf6Wh4qiZ9ASoaNXgrxpk?w=800&h=800&fit=crop',
     ],
     brand: Brand.PUMA,
     sizes: ['39', '40', '41', '42', '43', '44'],
-    colors: ['white', 'black', 'red'],
+    colors: ['white', 'black'],
     gender: Gender.MEN,
     shoeType: ShoeType.BASKETBALL,
   },
@@ -427,8 +470,10 @@ const SHOE_PRODUCTS = [
     price: 2890000,
     originalPrice: null,
     images: [
-      'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYx2PDnf980clBI03aqiukwAOQZU5gbpeGSxnyW?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYx7GldGS50QBixbMs2jPhGl5nqFYTAytWrRpzK?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxYzzwy6B7xlAoU7V60Y1TZWeFfvOnIbtQ4CjN?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxGXQjpO0lP4QihT9kmfFq71e8HUYaE6WsSojn?w=800&h=800&fit=crop',
     ],
     brand: Brand.NEW_BALANCE,
     sizes: ['38', '39', '40', '41', '42', '43', '44'],
@@ -443,12 +488,13 @@ const SHOE_PRODUCTS = [
     price: 2490000,
     originalPrice: 2890000,
     images: [
-      'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYx2PBmAKN0clBI03aqiukwAOQZU5gbpeGSxnyW?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxKD4f9qtXYIMv3d0lBN4bEZyQiFuAPRxzOSk5?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYx2GORfA0clBI03aqiukwAOQZU5gbpeGSxnyWf?w=800&h=800&fit=crop',
     ],
     brand: Brand.NEW_BALANCE,
     sizes: ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'],
-    colors: ['grey', 'navy', 'brown', 'green'],
+    colors: ['grey', 'brown', 'green'],
     gender: Gender.UNISEX,
     shoeType: ShoeType.CASUAL,
   },
@@ -459,12 +505,13 @@ const SHOE_PRODUCTS = [
     price: 2690000,
     originalPrice: null,
     images: [
-      'https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxmQhKcdV0PRiEtDJVTAglek567rvGjCLuoFZ3?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxHJqKyNnrbvUeMGRtNlaQ3OqDxsPVKc80iEgT?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxMom4bD1fM6Sd4pqJvFE9rZlnmoR7kWXHxsCV?w=800&h=800&fit=crop',
     ],
     brand: Brand.NEW_BALANCE,
     sizes: ['38', '39', '40', '41', '42', '43', '44'],
-    colors: ['orange', 'blue', 'grey', 'white'],
+    colors: ['orange', 'blue', 'white'],
     gender: Gender.UNISEX,
     shoeType: ShoeType.CASUAL,
   },
@@ -475,12 +522,12 @@ const SHOE_PRODUCTS = [
     price: 5990000,
     originalPrice: null,
     images: [
-      'https://images.unsplash.com/photo-1460353581641-37baddd0b49c?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYx1bFQfS8lDj8q9VNCWctvGJO7urpAmh6yZe2k?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxBa92sNURhAuwKf6I8trU2ZEkgjvMleJXNTSY?w=800&h=800&fit=crop',
     ],
     brand: Brand.NEW_BALANCE,
     sizes: ['39', '40', '41', '42', '43', '44'],
-    colors: ['white', 'black', 'blue'],
+    colors: ['black', 'blue'],
     gender: Gender.MEN,
     shoeType: ShoeType.TRAINING,
   },
@@ -491,12 +538,13 @@ const SHOE_PRODUCTS = [
     price: 3290000,
     originalPrice: 3790000,
     images: [
-      'https://images.unsplash.com/photo-1552346154-21d32810aba3?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1612902666506-4a6a0b36a77f?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxHaBu6cnrbvUeMGRtNlaQ3OqDxsPVKc80iEgT?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxmw0mBNV0PRiEtDJVTAglek567rvGjCLuoFZ3?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxNCQukEZqVr23EKdT1WYOngcXhISL0CkmRB9x?w=800&h=800&fit=crop',
     ],
     brand: Brand.NEW_BALANCE,
     sizes: ['38', '39', '40', '41', '42', '43', '44'],
-    colors: ['white', 'grey', 'navy', 'black'],
+    colors: ['white', 'grey', 'black'],
     gender: Gender.UNISEX,
     shoeType: ShoeType.CASUAL,
   },
@@ -507,8 +555,7 @@ const SHOE_PRODUCTS = [
     price: 4990000,
     originalPrice: null,
     images: [
-      'https://images.unsplash.com/photo-1595341884576-1cc805e7d4c8?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1584735175315-9d5df23860e6?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxDngZcZR7vVOuWm2nhM54pGqECeNZ9o8xcHyi?w=800&h=800&fit=crop',
     ],
     brand: Brand.NEW_BALANCE,
     sizes: ['39', '40', '41', '42', '43', '44', '45'],
@@ -523,8 +570,9 @@ const SHOE_PRODUCTS = [
     price: 4290000,
     originalPrice: 4890000,
     images: [
-      'https://images.unsplash.com/photo-1539185441755-769473a23570?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1579338559194-a162d19bf842?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxU6BS25KuGljFDqK7JgB2ivHEVAsh5wnSc96o?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxfNEJqH9trLuPWFe58kciN7gGXdz4DChva2Jw?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxG752TnlP4QihT9kmfFq71e8HUYaE6WsSojnx?w=800&h=800&fit=crop',
     ],
     brand: Brand.NEW_BALANCE,
     sizes: ['39', '40', '41', '42', '43', '44'],
@@ -539,8 +587,9 @@ const SHOE_PRODUCTS = [
     price: 1890000,
     originalPrice: null,
     images: [
-      'https://images.unsplash.com/photo-1604682320579-0df1996b4d8e?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1560769629-975ec94e7a86?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxoBe4zZyWVYJ1r7OTnqU5CIckmPZEDHjwp9fQ?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxwJ8JcFN6Cf0UIBLrcSQmoYly4dPXan9qxADb?w=800&h=800&fit=crop',
+      'https://hxhzxjpikg.ufs.sh/f/SJKI4yo6czYxV68dQZYItxjGnLONlwZUWRQEpm02i5hba61X?w=800&h=800&fit=crop',
     ],
     brand: Brand.NEW_BALANCE,
     sizes: ['39', '40', '41', '42', '43', '44', '45', '46'],
@@ -889,6 +938,9 @@ async function main() {
     const productTotalStock = sizeStockData.reduce((sum, s) => sum + s.stock, 0)
     totalStock += productTotalStock
 
+    // Tạo colorImages từ images và colors
+    const colorImages = generateColorImages(shoe.images, shoe.colors)
+
     // Tạo sản phẩm
     await prisma.product.upsert({
       where: { id: shoe.id },
@@ -900,6 +952,7 @@ async function main() {
         price: shoe.price,
         originalPrice: shoe.originalPrice ?? undefined,
         images: shoe.images,
+        colorImages: colorImages,
         brand: shoe.brand,
         sizes: shoe.sizes,
         colors: shoe.colors,

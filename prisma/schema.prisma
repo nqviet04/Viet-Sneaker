@@ -168,6 +168,8 @@ model Product {
   sizes     String[]
   // Màu sắc có sẵn: ["black", "white", "red"]
   colors    String[]
+  // Ảnh theo từng màu: {"black": ["url1", "url2"], "white": ["url3", "url4"]}
+  colorImages Json?  @db.JsonB
   // Giới tính mục tiêu: MEN, WOMEN, UNISEX
   gender    Gender
   // Loại giày: RUNNING, CASUAL, BOOTS, etc.
