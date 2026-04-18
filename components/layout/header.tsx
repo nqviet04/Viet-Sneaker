@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Search, User, LogOut, X, ShoppingBag, ChevronDown } from 'lucide-react'
+import { Search, User, LogOut, X, ShoppingBag, ChevronDown, Camera } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useSession, signIn, signOut } from 'next-auth/react'
@@ -115,6 +115,15 @@ export function Header() {
               className='px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 rounded-md hover:bg-red-50 transition-colors'
             >
               Khuyến mãi
+            </Link>
+
+            {/* Visual Search */}
+            <Link
+              href='/visual-search'
+              className='flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/10 rounded-md transition-colors'
+            >
+              <Camera className='h-4 w-4' />
+              <span className='hidden lg:inline'>Tìm ảnh</span>
             </Link>
           </nav>
 

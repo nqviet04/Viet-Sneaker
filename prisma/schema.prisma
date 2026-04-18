@@ -179,6 +179,15 @@ model Product {
   // Giá gốc (nếu có khuyến mãi)
   originalPrice Float?
 
+  // Visual Search fields - CLIP embedding (512 dims)
+  // Using Unsupported("vector(512)") for pgvector native type
+  // Lưu trữ dưới dạng pgvector, query bằng $queryRaw với operator <=>
+  embedding       Unsupported("vector(512)")?
+
+  // Màu chủ đạo trích xuất từ ảnh bằng ML (K-Means)
+  // e.g. ["white", "black"]
+  dominantColors  String[] @default([])
+
   // ==========================================
   // CÁC TRƯỜNG GIỮ NGUYÊN
   // ==========================================
