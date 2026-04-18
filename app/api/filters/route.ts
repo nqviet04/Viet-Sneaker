@@ -42,8 +42,13 @@ export async function GET() {
 
     // Flatten and dedupe colors
     const colorSet = new Set<string>()
+    const excludedColors = ['black-white', 'black_white', 'burgundy', 'checkerboard', 'egret', 'navy']
     productsWithColors.forEach((p) => {
-      p.colors.forEach((c) => colorSet.add(c))
+      p.colors.forEach((c) => {
+        if (!excludedColors.includes(c.toLowerCase())) {
+          colorSet.add(c)
+        }
+      })
     })
     const colors = Array.from(colorSet).sort()
 

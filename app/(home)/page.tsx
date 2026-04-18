@@ -34,19 +34,19 @@ async function getHomeData() {
 
 const PROMO_BANNERS = [
   {
-    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1400&h=600&fit=crop',
+    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff',
     title: 'Bứt Phá Phong Cách Cùng Mẫu Giày Mới',
     subtitle: 'Khám phá những thiết kế mới nhất dành cho bạn',
     cta: { label: 'Khám Phá Ngay', href: '/products?sort=created_desc' },
   },
   {
-    image: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=1400&h=600&fit=crop',
+    image: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a',
     title: 'Giảm Giá Đến 50%',
     subtitle: 'Ưu đãi có hạn, mua ngay hôm nay',
     cta: { label: 'Mua Ngay', href: '/products' },
   },
   {
-    image: 'https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=800&h=800&fit=crop',
+    image: 'https://images.unsplash.com/photo-1600269452121-4f2416e55c28',
     title: 'Miễn Phí Vận Chuyển',
     subtitle: 'Cho đơn hàng từ ₫2.500.000',
     cta: { label: 'Mua Ngay', href: '/products' },
@@ -72,6 +72,7 @@ export default async function HomePage() {
                     className='object-cover'
                     priority={index === 0}
                     sizes='100vw'
+                    quality={90}
                   />
                   <div className='absolute inset-0 bg-black/30' />
                   <div className='absolute inset-0 flex flex-col items-center justify-center text-center text-white px-4'>

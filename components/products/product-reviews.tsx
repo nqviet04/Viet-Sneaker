@@ -27,6 +27,7 @@ interface ProductReviewsProps {
 export function ProductReviews({ productId, reviews }: ProductReviewsProps) {
   const { data: session } = useSession()
   const [rating, setRating] = useState(5)
+  const [hoverRating, setHoverRating] = useState(0)
   const [comment, setComment] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -78,12 +79,14 @@ export function ProductReviews({ productId, reviews }: ProductReviewsProps) {
                   key={star}
                   type='button'
                   onClick={() => setRating(star)}
-                  className='focus:outline-none'
+                  onMouseEnter={() => setHoverRating(star)}
+                  onMouseLeave={() => setHoverRating(0)}
+                  className='focus:outline-none transition-transform hover:scale-110'
                 >
                   <Star
                     className={`w-6 h-6 ${
-                      star <= rating
-                        ? 'fill-primary text-primary'
+                      star <= (hoverRating || rating)
+                        ? 'fill-yellow-400 text-yellow-400'
                         : 'fill-muted text-muted'
                     }`}
                   />
@@ -142,8 +145,8 @@ export function ProductReviews({ productId, reviews }: ProductReviewsProps) {
                     key={star}
                     className={`w-4 h-4 ${
                       star <= review.rating
-                        ? 'fill-primary text-primary'
-                        : 'fill-muted text-muted'
+                        ? 'fill-yellow-400 text-yellow-400'
+                        : 'fill-gray-200 text-gray-200'
                     }`}
                   />
                 ))}
