@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
-import { Check, ChevronsUpDown, Search } from 'lucide-react'
+import { Check, ChevronsUpDown, Search, Banknote, QrCode } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -32,6 +32,9 @@ const shippingFormSchema = z.object({
   address: z.string().min(5, 'Địa chỉ phải có ít nhất 5 ký tự'),
   province: z.string().min(1, 'Vui lòng chọn Tỉnh/Thành phố'),
   ward: z.string().min(1, 'Vui lòng chọn Phường/Xã'),
+  paymentMethod: z.enum(['cod', 'bank_transfer'], {
+    required_error: 'Vui lòng chọn phương thức thanh toán',
+  }),
 })
 
 type ShippingFormValues = z.infer<typeof shippingFormSchema>
@@ -173,6 +176,7 @@ export function ShippingForm() {
       address: '',
       province: '',
       ward: '',
+      paymentMethod: 'cod',
     },
   })
 
@@ -213,7 +217,9 @@ export function ShippingForm() {
         return
       }
 
-      const shipping = 10
+      const FREE_SHIPPING_THRESHOLD = 2500000 // ₫2.500.000
+      const SHIPPING_COST = 150000 // ₫150.000
+      const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST
       const tax = subtotal * 0.1
       const total = subtotal + shipping + tax
 
@@ -241,9 +247,10 @@ export function ShippingForm() {
           items,
           shippingInfo,
           subtotal,
-          tax,
           shipping,
+          tax,
           total,
+          paymentMethod: data.paymentMethod,
         }),
       })
 
@@ -262,7 +269,11 @@ export function ShippingForm() {
       cart.clearCart()
       cart.clearBuyNowItem()
 
-      router.push(`/payment/${orderId}`)
+      if (data.paymentMethod === 'cod') {
+        router.push(`/order-confirmation/${orderId}`)
+      } else {
+        router.push(`/bank-transfer/${orderId}`)
+      }
     } catch (error) {
       console.error('[SHIPPING_FORM]', error)
       toast({
@@ -357,6 +368,59 @@ export function ShippingForm() {
               </FormItem>
             )}
           />
+        </div>
+
+        <div className='space-y-3'>
+          <FormLabel>Phương thức thanh toán</FormLabel>
+          <div className='grid grid-cols-2 gap-3'>
+            <FormField
+              control={form.control}
+              name='paymentMethod'
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <button
+                      type='button'
+                      onClick={() => field.onChange('cod')}
+                      className={cn(
+                        'w-full h-20 flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 text-sm font-medium transition-colors',
+                        field.value === 'cod'
+                          ? 'border-primary bg-primary/5 text-primary'
+                          : 'border-border hover:border-primary/50 hover:bg-accent'
+                      )}
+                    >
+                      <Banknote className='h-5 w-5' />
+                      Thanh toán khi nhận hàng
+                    </button>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='paymentMethod'
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <button
+                      type='button'
+                      onClick={() => field.onChange('bank_transfer')}
+                      className={cn(
+                        'w-full h-20 flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 text-sm font-medium transition-colors',
+                        field.value === 'bank_transfer'
+                          ? 'border-primary bg-primary/5 text-primary'
+                          : 'border-border hover:border-primary/50 hover:bg-accent'
+                      )}
+                    >
+                      <QrCode className='h-5 w-5' />
+                      Chuyển khoản ngân hàng
+                    </button>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+          <FormMessage />
         </div>
 
         <Button type='submit' className='w-full' disabled={loading}>

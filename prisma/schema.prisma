@@ -45,6 +45,14 @@ enum OrderStatus {
 }
 
 /**
+ * Phương thức thanh toán
+ */
+enum PaymentMethod {
+  COD
+  BANK_TRANSFER
+}
+
+/**
  * Thương hiệu giày
  * 6 thương hiệu chính: Nike, Adidas, Puma, New Balance, Converse, Vans
  */
@@ -247,9 +255,13 @@ model Order {
   userId          String
   user            User        @relation(fields: [userId], references: [id])
   items           OrderItem[]
-  status          OrderStatus @default(PENDING)
+  status          OrderStatus  @default(PENDING)
+  paymentMethod   PaymentMethod?
   shippingAddress Address     @relation(fields: [addressId], references: [id])
   addressId       String
+  subtotal        Float?
+  shipping        Float?
+  tax             Float?
   total           Float
   stripePaymentId String?
   createdAt       DateTime    @default(now())

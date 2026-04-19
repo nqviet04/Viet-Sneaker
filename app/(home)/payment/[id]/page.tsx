@@ -40,22 +40,22 @@ export default async function PaymentPage({ params }: PageProps) {
     redirect('/')
   }
 
-  if (order.stripePaymentId) {
+  if (order.stripePaymentId || order.paymentMethod) {
     redirect('/order-confirmation/' + order.id)
   }
 
-  const shipping = order.total >= 100 ? 0 : 10
-  const subtotal = order.items.reduce((sum, i) => sum + i.price * i.quantity, 0)
-  const tax = subtotal * 0.1
+  const subtotal = order.subtotal ?? order.items.reduce((sum, i) => sum + i.price * i.quantity, 0)
+  const shipping = order.shipping ?? (subtotal >= 2500000 ? 0 : 150000)
+  const tax = order.tax ?? subtotal * 0.1
 
   return (
     <div className='container max-w-7xl mx-auto py-20 px-4 sm:px-6 lg:px-8'>
-      <h1 className='text-3xl font-bold mb-10'>Payment</h1>
+      <h1 className='text-3xl font-bold mb-10'>Thông Tin Thanh Toán</h1>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
         <div>
           <Card>
             <CardHeader>
-              <CardTitle>Payment Information</CardTitle>
+              <CardTitle>Thông Tin Thanh Toán</CardTitle>
             </CardHeader>
             <CardContent>
               <PaymentForm orderId={id} />
@@ -66,7 +66,7 @@ export default async function PaymentPage({ params }: PageProps) {
         <div>
           <Card>
             <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
+              <CardTitle>Tóm Tắt Đơn Hàng</CardTitle>
             </CardHeader>
             <CardContent>
               <OrderPaymentSummary

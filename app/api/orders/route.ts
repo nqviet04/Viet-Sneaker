@@ -23,6 +23,10 @@ interface OrderBody {
   items: CartItem[]
   shippingInfo: ShippingInfo
   total: number
+  paymentMethod?: 'cod' | 'bank_transfer'
+  subtotal?: number
+  shipping?: number
+  tax?: number
 }
 
 export async function POST(req: Request) {
@@ -34,7 +38,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json()
-    const { items, shippingInfo, total } = body as OrderBody
+    const { items, shippingInfo, total, paymentMethod, subtotal, shipping, tax } = body as OrderBody
 
     if (!items?.length) {
       return NextResponse.json({ error: 'Bad Request: Cart items are required' }, { status: 400 })
@@ -42,6 +46,10 @@ export async function POST(req: Request) {
 
     if (!shippingInfo) {
       return NextResponse.json({ error: 'Bad Request: Shipping information is required' }, { status: 400 })
+    }
+
+    if (!paymentMethod) {
+      return NextResponse.json({ error: 'Bad Request: Payment method is required' }, { status: 400 })
     }
 
     // Verify all products exist
@@ -114,7 +122,11 @@ export async function POST(req: Request) {
         data: {
           userId: session.user.id,
           addressId: address.id,
+          subtotal: subtotal ?? 0,
+          shipping: shipping ?? 0,
+          tax: tax ?? 0,
           total,
+          paymentMethod: paymentMethod === 'cod' ? 'COD' : 'BANK_TRANSFER',
           items: {
             create: items.map((item) => ({
               productId: item.productId,
