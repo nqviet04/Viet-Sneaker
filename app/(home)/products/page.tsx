@@ -7,7 +7,7 @@ import { ProductSidebar } from '@/components/products/product-sidebar'
 import { Product } from '@prisma/client'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { X, Camera, Sparkles } from 'lucide-react'
+import { X, Camera, Sparkles, AlertCircle, RefreshCw } from 'lucide-react'
 import { useVisualSearchStore } from '@/store/use-visual-search'
 import { Skeleton } from '@/components/ui/skeleton'
 import Image from 'next/image'
@@ -29,7 +29,7 @@ export default function ProductsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
 
-  const { state: vsState, results: vsResults, mlInfo: vsMlInfo, preview: vsPreview, reset } =
+  const { state: vsState, results: vsResults, mlInfo: vsMlInfo, preview: vsPreview, errorMessage: vsError, reset, setState: setVsState, setResults, setMlInfo, setError } =
     useVisualSearchStore()
 
   // Reset page when visual search changes
@@ -225,6 +225,69 @@ export default function ProductsPage() {
         </div>
       )}
 
+      {/* Visual Search Error State */}
+      {vsState === 'error' && (
+        <div className='mb-6 flex items-center gap-4 p-4 bg-destructive/5 rounded-xl border border-destructive/20 text-center'>
+          <AlertCircle className='w-6 h-6 text-destructive shrink-0' />
+          <div className='flex-1 min-w-0 text-left'>
+            <div className='font-semibold text-sm text-destructive'>Tìm kiếm hình ảnh thất bại</div>
+            {vsError && (
+              <p className='text-xs text-muted-foreground mt-0.5'>{vsError}</p>
+            )}
+          </div>
+          <div className='flex items-center gap-2 shrink-0'>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={() => {
+                reset()
+                router.push('/products')
+              }}
+              className='gap-1.5'
+            >
+              <X className='h-4 w-4' />
+              Đóng
+            </Button>
+            <Button
+              size='sm'
+              onClick={() => {
+                if (vsPreview) {
+                  setVsState('analyzing')
+                  fetch('/api/visual-search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: vsPreview, topK: 12 }),
+                  })
+                    .then((res) => res.json())
+                    .then((data) => {
+                      if (data.success && data.results?.length > 0) {
+                        setResults(data.results)
+                        setMlInfo(data.mlInfo || null)
+                        setVsState('results')
+                      } else if (data.success && data.results?.length === 0) {
+                        setVsState('results')
+                        setResults([])
+                        setMlInfo(data.mlInfo || null)
+                      } else {
+                        setVsState('error')
+                        setError(data.error || 'Unknown error')
+                      }
+                    })
+                    .catch((err) => {
+                      setVsState('error')
+                      setError(err instanceof Error ? err.message : 'Connection failed')
+                    })
+                }
+              }}
+              className='gap-1.5'
+            >
+              <RefreshCw className='h-4 w-4' />
+              Thử lại
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Active Filters */}
       {activeFilters.length > 0 && (
         <div className='mb-4 flex flex-wrap items-center gap-2'>
@@ -261,14 +324,14 @@ export default function ProductsPage() {
 
       <div className='flex flex-col lg:flex-row gap-8'>
         {/* Sidebar - hidden during visual search results */}
-        {vsState !== 'results' && vsState !== 'analyzing' && (
+        {vsState !== 'results' && vsState !== 'analyzing' && vsState !== 'error' && (
           <aside className='w-full lg:w-64 flex-shrink-0'>
             <ProductSidebar />
           </aside>
         )}
 
         {/* Main Content */}
-        <main className={vsState !== 'results' && vsState !== 'analyzing' ? 'flex-1' : 'w-full'}>
+        <main className={vsState !== 'results' && vsState !== 'analyzing' && vsState !== 'error' ? 'flex-1' : 'w-full'}>
           {/* Visual Search Loading Skeleton */}
           {vsState === 'analyzing' ? (
             <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4'>

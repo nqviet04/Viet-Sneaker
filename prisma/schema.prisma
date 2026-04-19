@@ -209,6 +209,11 @@ model Product {
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([stock])
+  @@index([brand])
+  @@index([gender])
+  @@index([shoeType])
 }
 
 /**

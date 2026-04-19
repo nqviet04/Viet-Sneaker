@@ -16,4 +16,4 @@ ALTER TABLE "Product" RENAME COLUMN embedding_vector TO embedding;
 
 -- Step 5: Create index for vector similarity search (optional but recommended)
 -- Note: Only create if you have pgvector 0.5.0+ and have data
--- CREATE INDEX IF NOT EXISTS "Product_embedding_idx" ON "Product" USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+CREATE INDEX IF NOT EXISTS "Product_embedding_idx" ON "Product" USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);

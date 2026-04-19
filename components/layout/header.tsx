@@ -108,24 +108,39 @@ export function Header() {
         })
           .then((res) => res.json())
           .then((data) => {
-            if (data.results?.length > 0) {
+            // FIX: check success field from API response
+            if (data.success && data.results?.length > 0) {
               setResults(data.results)
               setMlInfo(data.mlInfo || null)
               setVsState('results')
               router.push('/products')
-            } else {
+            } else if (data.success && data.results?.length === 0) {
+              // API succeeded but no products found
               setVsState('results')
               setResults([])
+              setMlInfo(data.mlInfo || null)
               toast({
                 title: 'Không tìm thấy sản phẩm',
                 description: 'Không có sản phẩm nào phù hợp với hình ảnh này. Thử hình ảnh khác.',
               })
+            } else {
+              // API returned an error
+              const errorMsg = data.error || 'Đã xảy ra lỗi khi tìm kiếm'
+              setError(errorMsg)
+              incrementRetry()
+              setVsState('error')
+              toast({
+                title: 'Lỗi tìm kiếm hình ảnh',
+                description: errorMsg,
+                variant: 'destructive',
+              })
             }
           })
           .catch((err) => {
-            const msg = err instanceof Error ? err.message : 'Đã xảy ra lỗi'
+            const msg = err instanceof Error ? err.message : 'Không thể kết nối đến server'
             setError(msg)
             incrementRetry()
+            setVsState('error')
             toast({
               title: 'Lỗi tìm kiếm hình ảnh',
               description: msg,

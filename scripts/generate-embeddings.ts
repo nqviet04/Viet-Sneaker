@@ -34,6 +34,34 @@ const RETRY_DELAY_MS = 2000;
 
 
 // ============================================================
+// COLOR NORMALIZATION
+// ============================================================
+
+const STANDARD_COLORS: Record<string, string> = {
+  black: "Black",
+  white: "White",
+  red: "Red",
+  blue: "Blue",
+  grey: "Grey",
+  gray: "Grey",
+  navy: "Navy",
+  brown: "Brown",
+  beige: "Beige",
+  green: "Green",
+  orange: "Orange",
+  pink: "Pink",
+  purple: "Purple",
+  yellow: "Yellow",
+  multicolor: "Multicolor",
+};
+
+function toStandardColor(color: string): string | null {
+  const normalized = color.toLowerCase().trim().replace(/[_-]/g, " ");
+  return STANDARD_COLORS[normalized] || null;
+}
+
+
+// ============================================================
 // HELPERS
 // ============================================================
 
@@ -78,11 +106,20 @@ async function callMLServiceWithRetry(
 ): Promise<any> {
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
-      const response = await fetch(`${ML_SERVICE_URL}/batch-embeddings`, {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 120_000);
+      const response = await fetch(`${ML_SERVICE_URL}/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ images }),
+        body: JSON.stringify({
+          images: images.map((img) => ({
+            id: img.id,
+            image_base64: img.image_base64,
+          })),
+        }),
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
 
       if (!response.ok) {
         const error = await response.text();
@@ -194,38 +231,80 @@ async function main() {
       processed++;
     }
 
-    // 4. Gọi ML service (batch)
+    // 4. Gọi ML service (batch) - use /analyze to get both embedding + colors
     if (batchImages.length > 0) {
       try {
-        const mlResponse = await callMLServiceWithRetry(batchImages);
+        // Use /analyze endpoint for full analysis (embedding + colors)
+        const mlResults: Array<{
+          id: string;
+          embedding: number[];
+          dominant_colors: Array<{ name: string }>;
+          success: boolean;
+          error?: string;
+        }> = [];
+
+        // Process individually since ML service uses /analyze per image
+        for (const img of batchImages) {
+          try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 60_000);
+            const response = await fetch(`${ML_SERVICE_URL}/analyze`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ image: img.image_base64, include_embedding: true }),
+              signal: controller.signal,
+            });
+            clearTimeout(timeout);
+
+            if (!response.ok) {
+              throw new Error(`ML service returned ${response.status}`);
+            }
+
+            const data = await response.json();
+            mlResults.push({
+              id: img.id,
+              embedding: data.embedding,
+              dominant_colors: data.dominant_colors || [],
+              success: true,
+            });
+          } catch (err) {
+            console.warn(`  [${img.id}] ML analysis failed: ${err}`);
+            mlResults.push({ id: img.id, embedding: [], dominant_colors: [], success: false, error: String(err) });
+          }
+        }
 
         // 5. Cập nhật database
-        const updates = mlResponse.results.filter((r: any) => r.success);
-
         if (!dryRun) {
-          for (const result of updates) {
+          for (const result of mlResults) {
+            if (!result.success || !result.embedding?.length) continue;
+
             const product = productMap.get(result.id);
             if (!product) continue;
 
-            // Lấy thêm thông tin từ ML response
-            // dominantColors từ ML service (nếu có)
+            // Normalize colors to standard form
+            const normalizedColors = (result.dominant_colors || [])
+              .map((c: { name: string }) => toStandardColor(c.name))
+              .filter((c: string | null): c is string => c !== null);
+
+            // Build embedding string for PostgreSQL vector type
+            const embeddingStr = `[${result.embedding.join(",")}]`;
+
             await prisma.product.update({
               where: { id: result.id },
               data: {
-                embedding: result.embedding as unknown as string,
-                // dominantColors sẽ được set khi gọi /analyze riêng
+                embedding: embeddingStr as unknown as object,
+                dominantColors: normalizedColors,
               },
             });
           }
         }
 
-        successCount += updates.length;
-        if (updates.length < batchImages.length) {
-          errorCount += batchImages.length - updates.length;
-        }
+        const successInBatch = mlResults.filter((r) => r.success).length;
+        successCount += successInBatch;
+        errorCount += mlResults.length - successInBatch;
 
         console.log(
-          `  Done: ${updates.length}/${batchImages.length} success, ${batchImages.length - updates.length} errors`
+          `  Done: ${successInBatch}/${mlResults.length} success, ${mlResults.length - successInBatch} errors`
         );
       } catch (error) {
         console.error(`  Batch failed: ${error}`);
