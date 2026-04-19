@@ -43,6 +43,7 @@ interface ColorSelectorProps {
   selectedColor: string
   onColorChange: (color: string) => void
   error?: boolean
+  compact?: boolean
 }
 
 export function ColorSelector({
@@ -50,30 +51,33 @@ export function ColorSelector({
   selectedColor,
   onColorChange,
   error,
+  compact = false,
 }: ColorSelectorProps) {
   if (availableColors.length === 0) {
     return null
   }
 
   return (
-    <div className='space-y-3'>
-      <div className='flex items-center gap-2'>
-        <Label className={error ? 'text-red-500' : ''}>
-          Màu sắc
-          {error && (
-            <span className='text-xs text-red-500 ml-2'>
-              Vui lòng chọn màu sắc
+    <div className={compact ? 'space-y-1' : 'space-y-3'}>
+      {!compact && (
+        <div className='flex items-center gap-2'>
+          <Label className={error ? 'text-red-500' : ''}>
+            Màu sắc
+            {error && (
+              <span className='text-xs text-red-500 ml-2'>
+                Vui lòng chọn màu sắc
+              </span>
+            )}
+          </Label>
+          {selectedColor && (
+            <span className='text-sm text-muted-foreground'>
+              ({COLOR_CONFIG[selectedColor]?.label || selectedColor})
             </span>
           )}
-        </Label>
-        {selectedColor && (
-          <span className='text-sm text-muted-foreground'>
-            ({COLOR_CONFIG[selectedColor]?.label || selectedColor})
-          </span>
-        )}
-      </div>
+        </div>
+      )}
 
-      <div className='flex flex-wrap gap-3'>
+      <div className={compact ? 'flex gap-1.5' : 'flex flex-wrap gap-3'}>
         {availableColors.map((color) => {
           const config = COLOR_CONFIG[color.toLowerCase()] || {
             label: color,
@@ -87,11 +91,14 @@ export function ColorSelector({
               type='button'
               onClick={() => onColorChange(color.toLowerCase())}
               className={`
-                relative w-10 h-10 rounded-full border-2 transition-all duration-150
+                rounded-full border-2 transition-all duration-150
                 flex items-center justify-center
+                ${compact ? 'w-5 h-5' : 'w-10 h-10'}
                 ${config.border || 'border-transparent'}
                 ${isSelected
-                  ? 'ring-2 ring-offset-2 ring-black scale-110'
+                  ? compact
+                    ? 'ring-1 ring-offset-1 ring-black scale-110'
+                    : 'ring-2 ring-offset-2 ring-black scale-110'
                   : 'hover:scale-105 hover:ring-2 hover:ring-offset-1 hover:ring-gray-300'
                 }
               `}
@@ -101,7 +108,7 @@ export function ColorSelector({
             >
               {isSelected && (
                 <Check
-                  className={`h-5 w-5 ${
+                  className={compact ? 'h-3 w-3' : `h-5 w-5 ${
                     isLightColor(color) ? 'text-gray-800' : 'text-white'
                   }`}
                 />
@@ -111,7 +118,7 @@ export function ColorSelector({
         })}
       </div>
 
-      {selectedColor && (
+      {!compact && selectedColor && (
         <p className='text-sm text-muted-foreground'>
           Đã chọn màu:{' '}
           <span className='font-medium text-foreground'>

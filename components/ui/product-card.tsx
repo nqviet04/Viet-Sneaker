@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge'
 import { useCart } from '@/store/use-cart'
 import { useToast } from '@/hooks/use-toast'
 import { ToastAction } from '@/components/ui/toast'
+import { ColorSelector } from '@/components/products/color-selector'
 
 interface ProductCardProps {
   product: {
@@ -48,7 +49,7 @@ export function ProductCard({
   className,
   showBadges = false,
   compact = false,
-  selectedColor,
+  selectedColor: externalColor,
 }: ProductCardProps) {
   const cart = useCart()
   const { toast } = useToast()
@@ -65,22 +66,20 @@ export function ProductCard({
   const defaultColor = product.colors?.[0] || 'default'
   const isOutOfStock = (product.stock ?? 0) === 0
 
-  // Lấy ảnh hiển thị dựa trên màu được chọn
-  const getDisplayImage = (): string => {
-    if (selectedColor && product.colorImages) {
-      const normalized = selectedColor.toLowerCase().trim()
+  const [internalColor, setInternalColor] = React.useState('')
+  const activeColor = externalColor !== undefined ? externalColor : internalColor
 
-      // Try exact lowercase match first
+  const getDisplayImage = (): string => {
+    if (activeColor && product.colorImages) {
+      const normalized = activeColor.toLowerCase().trim()
+
       if (product.colorImages[normalized]) {
         return product.colorImages[normalized][0]
       }
-
-      // Try original case
-      if (product.colorImages[selectedColor]) {
-        return product.colorImages[selectedColor][0]
+      if (product.colorImages[activeColor]) {
+        return product.colorImages[activeColor][0]
       }
 
-      // Try each key in colorImages for partial match
       for (const [key, images] of Object.entries(product.colorImages)) {
         const keyNorm = key.toLowerCase()
         if (keyNorm === normalized || keyNorm.includes(normalized) || normalized.includes(keyNorm)) {
@@ -106,7 +105,6 @@ export function ProductCard({
       return
     }
 
-    // Lấy ảnh đúng theo màu đã chọn
     const imageForColor = getDisplayImage()
 
     cart.addItem({
@@ -116,7 +114,7 @@ export function ProductCard({
       image: imageForColor,
       quantity: 1,
       selectedSize: defaultSize,
-      selectedColor: defaultColor,
+      selectedColor: activeColor || defaultColor,
     })
 
     toast({
@@ -132,48 +130,64 @@ export function ProductCard({
 
   return (
     <Card className={cn('overflow-hidden group flex flex-col', className)}>
-      <Link href={'/products/' + product.id} className='flex flex-col flex-1'>
-        <div className='aspect-square overflow-hidden relative'>
-          {displayImage ? (
-            <Image
-              src={displayImage}
-              alt={product.name}
-              fill
-              sizes='(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw'
-              className='object-cover transition-transform duration-300 group-hover:scale-105'
-              quality={90}
-              priority
+      <div className='flex flex-col flex-1'>
+        <Link href={'/products/' + product.id} className='block'>
+          <div className='aspect-square overflow-hidden relative'>
+            {displayImage ? (
+              <Image
+                src={displayImage}
+                alt={product.name}
+                fill
+                sizes='(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw'
+                className='object-cover transition-transform duration-300 group-hover:scale-105'
+                quality={90}
+                priority
+              />
+            ) : (
+              <div className='absolute inset-0 bg-gray-100 flex items-center justify-center'>
+                <span className='text-gray-400 text-sm'>No image</span>
+              </div>
+            )}
+
+            {showBadges && (
+              <div className='absolute top-2 left-2 flex flex-col gap-1'>
+                {product.brand && (
+                  <Badge variant='secondary' className='text-[10px] px-1.5 py-0 bg-black/70 text-white border-0'>
+                    {product.brand.replace('_', ' ')}
+                  </Badge>
+                )}
+                {product.originalPrice && product.originalPrice > product.price && (
+                  <Badge variant='destructive' className='text-[10px] px-1.5 py-0'>
+                    {Math.round((1 - product.price / product.originalPrice) * 100)}% OFF
+                  </Badge>
+                )}
+              </div>
+            )}
+
+            {isOutOfStock && (
+              <div className='absolute inset-0 bg-black/40 flex items-center justify-center'>
+                <span className='bg-white text-black text-xs font-bold px-3 py-1 rounded'>
+                  OUT OF STOCK
+                </span>
+              </div>
+            )}
+          </div>
+        </Link>
+
+        {/* Color swatches */}
+        {product.colors && product.colors.length > 0 && (
+          <div className='px-3 pt-3 pb-1'>
+            <ColorSelector
+              availableColors={product.colors}
+              selectedColor={activeColor}
+              onColorChange={(color) => setInternalColor(color)}
+              compact
             />
-          ) : (
-            <div className='absolute inset-0 bg-gray-100 flex items-center justify-center'>
-              <span className='text-gray-400 text-sm'>No image</span>
-            </div>
-          )}
+          </div>
+        )}
+      </div>
 
-          {showBadges && (
-            <div className='absolute top-2 left-2 flex flex-col gap-1'>
-              {product.brand && (
-                <Badge variant='secondary' className='text-[10px] px-1.5 py-0 bg-black/70 text-white border-0'>
-                  {product.brand.replace('_', ' ')}
-                </Badge>
-              )}
-              {product.originalPrice && product.originalPrice > product.price && (
-                <Badge variant='destructive' className='text-[10px] px-1.5 py-0'>
-                  {Math.round((1 - product.price / product.originalPrice) * 100)}% OFF
-                </Badge>
-              )}
-            </div>
-          )}
-
-          {isOutOfStock && (
-            <div className='absolute inset-0 bg-black/40 flex items-center justify-center'>
-              <span className='bg-white text-black text-xs font-bold px-3 py-1 rounded'>
-                OUT OF STOCK
-              </span>
-            </div>
-          )}
-        </div>
-
+      <Link href={'/products/' + product.id} className='block flex-1'>
         <CardHeader className={cn('p-3', compact ? 'p-2' : 'p-4')}>
           <CardTitle className='line-clamp-2 text-sm font-semibold'>
             {product.name}

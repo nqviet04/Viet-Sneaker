@@ -73,9 +73,6 @@ export default function ProductsPage() {
   const colors = searchParams.get('colors')
   if (colors) activeFilters.push({ key: 'colors', label: 'Màu sắc', values: colors.split(',') })
 
-  // Get first selected color for displaying correct product images
-  const selectedColor = colors ? colors.split(',')[0] : undefined
-
   const gender = searchParams.get('gender')
   if (gender) activeFilters.push({ key: 'gender', label: 'Giới tính', values: [gender === 'MEN' ? 'Nam' : gender === 'WOMEN' ? 'Nữ' : 'Unisex'] })
 
@@ -177,9 +174,6 @@ export default function ProductsPage() {
                     ))}
                   </div>
                 )}
-                <span className='text-xs text-muted-foreground'>
-                  Phân tích trong {vsMlInfo.processingTimeMs}ms
-                </span>
               </div>
             )}
           </div>
@@ -200,41 +194,33 @@ export default function ProductsPage() {
 
       {/* Visual Search Analyzing State */}
       {vsState === 'analyzing' && (
-        <div className='mb-6 flex items-center gap-4 p-6 bg-primary/5 rounded-xl border border-primary/20'>
-          <div className='w-16 h-16 shrink-0 rounded-lg overflow-hidden border bg-gray-100 relative'>
+        <div className='mb-6 flex flex-col items-center justify-center gap-6 p-10 bg-primary/5 rounded-xl border border-primary/20 text-center'>
+          <div className='w-20 h-20 shrink-0 rounded-2xl overflow-hidden border-2 border-primary/30 bg-gray-100 relative shadow-sm'>
             {vsPreview ? (
               <Image src={vsPreview} alt='Search image' fill className='object-contain p-1' unoptimized />
             ) : (
               <div className='w-full h-full flex items-center justify-center'>
-                <Camera className='w-6 h-6 text-muted-foreground' />
+                <Camera className='w-8 h-8 text-muted-foreground' />
               </div>
             )}
           </div>
-          <div className='flex-1'>
-            <div className='flex items-center gap-2 mb-1'>
-              <Sparkles className='w-4 h-4 text-primary animate-pulse' />
-              <span className='font-semibold text-sm'>AI đang phân tích hình ảnh...</span>
+          <div className='space-y-2'>
+            <div className='flex items-center justify-center gap-2'>
+              <div className='relative flex gap-1'>
+                <span className='w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:0ms]' />
+                <span className='w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:150ms]' />
+                <span className='w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:300ms]' />
+              </div>
+              <span className='font-bold text-base text-foreground'>Hệ thống đang kiếm sản phẩm phù hợp</span>
+              <div className='relative flex gap-1'>
+                <span className='w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:300ms]' />
+                <span className='w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:150ms]' />
+                <span className='w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:0ms]' />
+              </div>
             </div>
-            <p className='text-xs text-muted-foreground'>
-              CLIP đang trích xuất đặc trưng và tìm sản phẩm tương tự trong database
+            <p className='text-sm text-muted-foreground'>
+              Vui lòng đợi trong giây lát nhé
             </p>
-          </div>
-          <div className='flex gap-2 items-center'>
-            {vsMlInfo && vsMlInfo.dominantColors.length > 0 && (
-              <div className='flex gap-1 mr-2'>
-                {vsMlInfo.dominantColors.slice(0, 3).map((c) => (
-                  <div
-                    key={c.hex}
-                    className='w-4 h-4 rounded-full border'
-                    style={{ backgroundColor: c.hex }}
-                    title={c.name}
-                  />
-                ))}
-              </div>
-            )}
-            <div className='animate-spin'>
-              <Sparkles className='w-5 h-5 text-primary' />
-            </div>
           </div>
         </div>
       )}
@@ -302,7 +288,6 @@ export default function ProductsPage() {
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={setCurrentPage}
-              selectedColor={selectedColor}
               visualSearchResults={vsState === 'results' ? vsResults : undefined}
               detectedColors={vsState === 'results' ? vsMlInfo?.dominantColors : undefined}
               onClearVisualSearch={() => {

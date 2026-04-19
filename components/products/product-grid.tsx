@@ -16,7 +16,6 @@ interface ProductGridProps {
   currentPage: number
   totalPages: number
   onPageChange: (page: number) => void
-  selectedColor?: string
   visualSearchResults?: VisualSearchResult[]
   onClearVisualSearch?: () => void
   detectedColors?: DetectedColor[]
@@ -41,7 +40,6 @@ export function ProductGrid({
   currentPage,
   totalPages,
   onPageChange,
-  selectedColor,
   visualSearchResults,
   onClearVisualSearch,
   detectedColors,
@@ -135,7 +133,7 @@ export function ProductGrid({
     <div className='space-y-8'>
       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
         {products.map((product) => (
-          <ProductCard key={product.id} product={product} selectedColor={selectedColor} />
+          <ProductCard key={product.id} product={product} />
         ))}
       </div>
       <div className='flex justify-center'>
