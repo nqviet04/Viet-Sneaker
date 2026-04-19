@@ -304,6 +304,7 @@ export default function ProductsPage() {
               onPageChange={setCurrentPage}
               selectedColor={selectedColor}
               visualSearchResults={vsState === 'results' ? vsResults : undefined}
+              detectedColors={vsState === 'results' ? vsMlInfo?.dominantColors : undefined}
               onClearVisualSearch={() => {
                 reset()
                 router.push('/products')

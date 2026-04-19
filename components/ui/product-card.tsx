@@ -68,10 +68,24 @@ export function ProductCard({
   // Lấy ảnh hiển thị dựa trên màu được chọn
   const getDisplayImage = (): string => {
     if (selectedColor && product.colorImages) {
-      const colorLower = selectedColor.toLowerCase()
-      const colorSpecificImages = product.colorImages[colorLower]
-      if (colorSpecificImages && colorSpecificImages.length > 0) {
-        return colorSpecificImages[0]
+      const normalized = selectedColor.toLowerCase().trim()
+
+      // Try exact lowercase match first
+      if (product.colorImages[normalized]) {
+        return product.colorImages[normalized][0]
+      }
+
+      // Try original case
+      if (product.colorImages[selectedColor]) {
+        return product.colorImages[selectedColor][0]
+      }
+
+      // Try each key in colorImages for partial match
+      for (const [key, images] of Object.entries(product.colorImages)) {
+        const keyNorm = key.toLowerCase()
+        if (keyNorm === normalized || keyNorm.includes(normalized) || normalized.includes(keyNorm)) {
+          return images[0]
+        }
       }
     }
     return product.images[0] || ''

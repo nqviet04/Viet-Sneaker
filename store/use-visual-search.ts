@@ -9,6 +9,7 @@ export interface VisualSearchResult {
   price: number
   originalPrice?: number
   images: string[]
+  colorImages?: Record<string, string[]> | null
   brand: string
   gender: string
   shoeType: string

@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { VisualSearchResult } from '@/store/use-visual-search'
+import type { DetectedColor } from '@/lib/color-utils'
+import { findBestMatchingColor } from '@/lib/color-utils'
 
 interface ProductGridProps {
   products: Product[]
@@ -17,6 +19,7 @@ interface ProductGridProps {
   selectedColor?: string
   visualSearchResults?: VisualSearchResult[]
   onClearVisualSearch?: () => void
+  detectedColors?: DetectedColor[]
 }
 
 function SimilarityBadge({ score }: { score: number }) {
@@ -41,8 +44,15 @@ export function ProductGrid({
   selectedColor,
   visualSearchResults,
   onClearVisualSearch,
+  detectedColors,
 }: ProductGridProps) {
   const isVisualSearch = visualSearchResults !== undefined
+
+  // When showing visual search results, pick the best-matching color for each product
+  const getVisualSearchColor = (productColors: string[]): string | undefined => {
+    if (!detectedColors?.length) return undefined
+    return findBestMatchingColor(detectedColors, productColors)
+  }
 
   if (loading && !isVisualSearch) {
     return (
@@ -77,30 +87,34 @@ export function ProductGrid({
     return (
       <div className='space-y-8'>
         <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4'>
-          {visualSearchResults.map((product) => (
-            <div key={product.id} className='relative'>
-              <ProductCard
-                product={{
-                  id: product.id,
-                  name: product.name,
-                  description: '',
-                  price: product.price,
-                  images: product.images,
-                  brand: product.brand,
-                  gender: product.gender,
-                  shoeType: product.shoeType,
-                  stock: product.stock,
-                  originalPrice: product.originalPrice,
-                  colors: product.colors,
-                }}
-                showBadges
-                selectedColor={selectedColor}
-              />
-              <div className='absolute top-3 right-3 z-10'>
-                <SimilarityBadge score={product.similarityScore} />
+          {visualSearchResults.map((product) => {
+            const matchedColor = getVisualSearchColor(product.colors)
+            return (
+              <div key={product.id} className='relative'>
+                <ProductCard
+                  product={{
+                    id: product.id,
+                    name: product.name,
+                    description: '',
+                    price: product.price,
+                    images: product.images,
+                    colorImages: product.colorImages,
+                    brand: product.brand,
+                    gender: product.gender,
+                    shoeType: product.shoeType,
+                    stock: product.stock,
+                    originalPrice: product.originalPrice,
+                    colors: product.colors,
+                  }}
+                  showBadges
+                  selectedColor={matchedColor}
+                />
+                <div className='absolute top-3 right-3 z-10'>
+                  <SimilarityBadge score={product.similarityScore} />
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     )

@@ -95,10 +95,47 @@ export function Header() {
       }
       setSelectedFile(file)
       const reader = new FileReader()
-      reader.onload = (e) => setPreview(e.target?.result as string)
+      reader.onload = (e) => {
+        const dataUrl = e.target?.result as string
+        setPreview(dataUrl)
+        setVsState('analyzing')
+        setShowCameraDropdown(false)
+
+        fetch('/api/visual-search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: dataUrl, topK: 12 }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.results?.length > 0) {
+              setResults(data.results)
+              setMlInfo(data.mlInfo || null)
+              setVsState('results')
+              router.push('/products')
+            } else {
+              setVsState('results')
+              setResults([])
+              toast({
+                title: 'Không tìm thấy sản phẩm',
+                description: 'Không có sản phẩm nào phù hợp với hình ảnh này. Thử hình ảnh khác.',
+              })
+            }
+          })
+          .catch((err) => {
+            const msg = err instanceof Error ? err.message : 'Đã xảy ra lỗi'
+            setError(msg)
+            incrementRetry()
+            toast({
+              title: 'Lỗi tìm kiếm hình ảnh',
+              description: msg,
+              variant: 'destructive',
+            })
+          })
+      }
       reader.readAsDataURL(file)
     },
-    [toast, setPreview]
+    [toast, router, setPreview, setVsState, setShowCameraDropdown, setResults, setMlInfo, setError, incrementRetry]
   )
 
   const handleClearVisualSearch = useCallback(() => {
@@ -106,59 +143,6 @@ export function Header() {
     reset()
     setShowCameraDropdown(false)
   }, [reset])
-
-  const runVisualSearch = useCallback(async () => {
-    if (!vsPreview) return
-
-    setVsState('analyzing')
-    setShowCameraDropdown(false)
-
-    try {
-      const response = await fetch('/api/visual-search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: vsPreview, topK: 12 }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Search failed')
-      }
-
-      if (data.results && data.results.length > 0) {
-        setResults(data.results)
-        setMlInfo(data.mlInfo || null)
-        setVsState('results')
-        router.push('/products')
-      } else {
-        setVsState('results')
-        setResults([])
-        toast({
-          title: 'Không tìm thấy sản phẩm',
-          description: 'Không có sản phẩm nào phù hợp với hình ảnh này. Thử hình ảnh khác.',
-        })
-      }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Đã xảy ra lỗi'
-      setError(msg)
-      incrementRetry()
-
-      toast({
-        title: 'Lỗi tìm kiếm hình ảnh',
-        description: msg,
-        variant: 'destructive',
-      })
-    }
-  }, [vsPreview, router, toast, setVsState, setResults, setMlInfo, setError, incrementRetry])
-
-  // Auto-trigger search when preview is ready
-  useEffect(() => {
-    if (vsPreview && selectedFile && vsState === 'idle') {
-      const timer = setTimeout(() => runVisualSearch(), 500)
-      return () => clearTimeout(timer)
-    }
-  }, [vsPreview, selectedFile, vsState, runVisualSearch])
 
   return (
     <header className='border-b sticky top-0 z-50 bg-white'>

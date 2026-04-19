@@ -41,6 +41,7 @@ interface SearchResult {
   price: number;
   originalPrice?: number;
   images: string[];
+  colorImages?: Record<string, string[]> | null;
   brand: string;
   gender: string;
   shoeType: string;
@@ -255,6 +256,7 @@ export async function visualSearchPipeline(
       price: true,
       originalPrice: true,
       images: true,
+      colorImages: true,
       brand: true,
       gender: true,
       shoeType: true,
@@ -289,6 +291,7 @@ export async function visualSearchPipeline(
       price: product.price,
       originalPrice: product.originalPrice || undefined,
       images: product.images,
+      colorImages: product.colorImages ?? undefined,
       brand: product.brand,
       gender: product.gender,
       shoeType: product.shoeType,
