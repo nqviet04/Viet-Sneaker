@@ -5,12 +5,31 @@ import { formatPrice } from '@/lib/utils'
 import Image from 'next/image'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
+import { useEffect, useState } from 'react'
+import type { CartItem } from '@/store/use-cart'
 
 export function OrderSummary() {
   const cart = useCart()
   const items = cart.items
+  const [buyNowItem, setBuyNowItem] = useState<Omit<CartItem, 'id'> | null>(null)
 
-  const subtotal = items.reduce((total, item) => {
+  useEffect(() => {
+    const raw = sessionStorage.getItem('buy-now-item')
+    if (raw) {
+      try {
+        setBuyNowItem(JSON.parse(raw))
+      } catch {
+        // ignore
+      }
+    }
+    return () => {
+      cart.clearBuyNowItem()
+    }
+  }, [])
+
+  const displayItems = buyNowItem ? [buyNowItem] : items
+
+  const subtotal = displayItems.reduce((total, item) => {
     return total + item.price * item.quantity
   }, 0)
 
@@ -23,41 +42,44 @@ export function OrderSummary() {
   return (
     <div className='space-y-6'>
       <ScrollArea className='h-[300px] pr-4'>
-        {items.map((item) => (
-          <div key={item.id} className='flex items-start space-x-4 py-4'>
-            <div className='relative h-16 w-16 overflow-hidden rounded-lg flex-shrink-0'>
-              {item.image ? (
-                <Image
-                  src={item.image}
-                  alt={item.name}
-                  fill
-                  className='object-cover'
-                />
-              ) : (
-                <div className='absolute inset-0 bg-gray-100 flex items-center justify-center'>
-                  <span className='text-[8px] text-gray-400'>No img</span>
-                </div>
-              )}
-            </div>
-            <div className='flex-1 space-y-1 min-w-0'>
-              <h3 className='font-medium text-sm line-clamp-2'>{item.name}</h3>
-              <div className='flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-gray-500'>
-                <span>
-                  <span className='font-medium'>Size:</span> {item.selectedSize}
-                </span>
-                <span>
-                  <span className='font-medium'>Màu:</span> {item.selectedColor}
-                </span>
-                <span>
-                  <span className='font-medium'>SL:</span> {item.quantity}
-                </span>
+        {displayItems.map((item) => {
+          const key = `${item.productId}:${item.selectedSize}:${item.selectedColor}`
+          return (
+            <div key={key} className='flex items-start space-x-4 py-4'>
+              <div className='relative h-16 w-16 overflow-hidden rounded-lg flex-shrink-0'>
+                {item.image ? (
+                  <Image
+                    src={item.image}
+                    alt={item.name}
+                    fill
+                    className='object-cover'
+                  />
+                ) : (
+                  <div className='absolute inset-0 bg-gray-100 flex items-center justify-center'>
+                    <span className='text-[8px] text-gray-400'>No img</span>
+                  </div>
+                )}
               </div>
-              <p className='text-sm font-medium'>
-                {formatPrice(item.price * item.quantity)}
-              </p>
+              <div className='flex-1 space-y-1 min-w-0'>
+                <h3 className='font-medium text-sm line-clamp-2'>{item.name}</h3>
+                <div className='flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-gray-500'>
+                  <span>
+                    <span className='font-medium'>Size:</span> {item.selectedSize}
+                  </span>
+                  <span>
+                    <span className='font-medium'>Màu:</span> {item.selectedColor}
+                  </span>
+                  <span>
+                    <span className='font-medium'>SL:</span> {item.quantity}
+                  </span>
+                </div>
+                <p className='text-sm font-medium'>
+                  {formatPrice(item.price * item.quantity)}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </ScrollArea>
 
       <Separator />

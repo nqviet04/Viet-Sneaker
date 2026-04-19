@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -53,6 +54,7 @@ export function ProductInfo({ product, selectedColor: externalColor, onColorChan
   const [colorError, setColorError] = useState(false)
   const cart = useCart()
   const { toast } = useToast()
+  const router = useRouter()
 
   const selectedColor = externalColor !== undefined ? externalColor : internalColor
 
@@ -127,6 +129,40 @@ export function ProductInfo({ product, selectedColor: externalColor, onColorChan
         </ToastAction>
       ),
     })
+  }
+
+  const validateAndBuyNow = () => {
+    if (!selectedSize) {
+      setSizeError(true)
+      toast({
+        title: 'Chưa chọn size',
+        description: 'Vui lòng chọn size trước khi mua ngay.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    if (requiresColor && !selectedColor) {
+      setColorError(true)
+      toast({
+        title: 'Chưa chọn màu sắc',
+        description: 'Vui lòng chọn màu sắc trước khi mua ngay.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    cart.setBuyNowItem({
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.images[0],
+      quantity: parseInt(quantity),
+      selectedSize,
+      selectedColor: selectedColor || 'default',
+    })
+
+    router.push('/checkout')
   }
 
   return (
@@ -261,15 +297,24 @@ export function ProductInfo({ product, selectedColor: externalColor, onColorChan
           )}
         </div>
 
-        {/* Add to Cart Button */}
-        <Button
-          onClick={handleAddToCart}
-          className='w-full'
-          disabled={product.stock === 0}
-          size='lg'
-        >
-          {product.stock > 0 ? 'Thêm vào giỏ hàng' : 'Hết hàng'}
-        </Button>
+        {/* CTA Buttons */}
+        <div className='grid grid-cols-2 gap-3'>
+          <Button
+            variant='outline'
+            onClick={handleAddToCart}
+            disabled={product.stock === 0}
+            size='lg'
+          >
+            {product.stock > 0 ? 'Thêm vào giỏ hàng' : 'Hết hàng'}
+          </Button>
+          <Button
+            onClick={validateAndBuyNow}
+            disabled={product.stock === 0}
+            size='lg'
+          >
+            {product.stock > 0 ? 'Mua ngay' : 'Hết hàng'}
+          </Button>
+        </div>
 
         {/* Quick Info */}
         <p className='text-xs text-center text-muted-foreground'>

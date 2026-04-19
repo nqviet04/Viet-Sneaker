@@ -27,6 +27,10 @@ type CartStore = {
   itemCount: () => number
   setHasHydrated: (state: boolean) => void
   initializeFromStorage: () => void
+  // Buy Now flow - persists to sessionStorage so checkout can read it
+  setBuyNowItem: (item: Omit<CartItem, 'id'> | null) => void
+  getBuyNowItem: () => Omit<CartItem, 'id'> | null
+  clearBuyNowItem: () => void
 }
 
 export const useCart = create<CartStore>()(
@@ -155,6 +159,40 @@ export const useCart = create<CartStore>()(
           console.error('Error hydrating cart:', error)
         }
         useCart.setState({ _hasHydrated: true })
+      },
+
+      /**
+       * Set the "Buy Now" item in sessionStorage for checkout flow.
+       * Does not modify the cart.
+       */
+      setBuyNowItem: (item) => {
+        if (typeof window === 'undefined') return
+        if (item === null) {
+          sessionStorage.removeItem('buy-now-item')
+        } else {
+          sessionStorage.setItem('buy-now-item', JSON.stringify(item))
+        }
+      },
+
+      /**
+       * Get the "Buy Now" item from sessionStorage.
+       */
+      getBuyNowItem: () => {
+        if (typeof window === 'undefined') return null
+        try {
+          const raw = sessionStorage.getItem('buy-now-item')
+          return raw ? (JSON.parse(raw) as Omit<CartItem, 'id'>) : null
+        } catch {
+          return null
+        }
+      },
+
+      /**
+       * Clear the "Buy Now" item from sessionStorage.
+       */
+      clearBuyNowItem: () => {
+        if (typeof window === 'undefined') return
+        sessionStorage.removeItem('buy-now-item')
       },
     }),
     {
