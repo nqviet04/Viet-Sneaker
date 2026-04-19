@@ -2,6 +2,11 @@ import { Product } from '@prisma/client'
 import { ProductCard } from '@/components/ui/product-card'
 import { Pagination } from '@/components/ui/pagination'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { X } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import type { VisualSearchResult } from '@/store/use-visual-search'
 
 interface ProductGridProps {
   products: Product[]
@@ -10,6 +15,21 @@ interface ProductGridProps {
   totalPages: number
   onPageChange: (page: number) => void
   selectedColor?: string
+  visualSearchResults?: VisualSearchResult[]
+  onClearVisualSearch?: () => void
+}
+
+function SimilarityBadge({ score }: { score: number }) {
+  const pct = Math.round(score * 100)
+  let color = 'bg-green-100 text-green-800'
+  if (pct < 60) color = 'bg-yellow-100 text-yellow-800'
+  if (pct < 40) color = 'bg-gray-100 text-gray-600'
+
+  return (
+    <Badge className={cn('text-[10px] font-mono', color)}>
+      {pct}% match
+    </Badge>
+  )
 }
 
 export function ProductGrid({
@@ -19,8 +39,12 @@ export function ProductGrid({
   totalPages,
   onPageChange,
   selectedColor,
+  visualSearchResults,
+  onClearVisualSearch,
 }: ProductGridProps) {
-  if (loading) {
+  const isVisualSearch = visualSearchResults !== undefined
+
+  if (loading && !isVisualSearch) {
     return (
       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
         {Array.from({ length: 8 }).map((_, i) => (
@@ -30,6 +54,54 @@ export function ProductGrid({
             <Skeleton className='h-4 w-1/2' />
           </div>
         ))}
+      </div>
+    )
+  }
+
+  if (isVisualSearch) {
+    if (visualSearchResults.length === 0) {
+      return (
+        <div className='text-center py-16'>
+          <h3 className='text-lg font-semibold mb-2'>Không tìm thấy sản phẩm phù hợp</h3>
+          <p className='text-muted-foreground mb-4'>
+            Thử hình ảnh giày rõ ràng hơn hoặc chụp từ góc khác
+          </p>
+          <Button variant='outline' onClick={onClearVisualSearch} className='gap-2'>
+            <X className='h-4 w-4' />
+            Tìm kiếm khác
+          </Button>
+        </div>
+      )
+    }
+
+    return (
+      <div className='space-y-8'>
+        <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4'>
+          {visualSearchResults.map((product) => (
+            <div key={product.id} className='relative'>
+              <ProductCard
+                product={{
+                  id: product.id,
+                  name: product.name,
+                  description: '',
+                  price: product.price,
+                  images: product.images,
+                  brand: product.brand,
+                  gender: product.gender,
+                  shoeType: product.shoeType,
+                  stock: product.stock,
+                  originalPrice: product.originalPrice,
+                  colors: product.colors,
+                }}
+                showBadges
+                selectedColor={selectedColor}
+              />
+              <div className='absolute top-3 right-3 z-10'>
+                <SimilarityBadge score={product.similarityScore} />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     )
   }

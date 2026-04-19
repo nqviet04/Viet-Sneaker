@@ -7,7 +7,19 @@ import { ProductSidebar } from '@/components/products/product-sidebar'
 import { Product } from '@prisma/client'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { X } from 'lucide-react'
+import { X, Camera, Sparkles } from 'lucide-react'
+import { useVisualSearchStore } from '@/store/use-visual-search'
+import { Skeleton } from '@/components/ui/skeleton'
+import Image from 'next/image'
+
+const SIMILARITY_LABELS: Record<string, string> = {
+  NIKE: 'Nike',
+  ADIDAS: 'Adidas',
+  PUMA: 'Puma',
+  NEW_BALANCE: 'New Balance',
+  CONVERSE: 'Converse',
+  VANS: 'Vans',
+}
 
 export default function ProductsPage() {
   const searchParams = useSearchParams()
@@ -16,13 +28,19 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const [total, setTotal] = useState(0)
+
+  const { state: vsState, results: vsResults, mlInfo: vsMlInfo, preview: vsPreview, reset } =
+    useVisualSearchStore()
+
+  // Reset page when visual search changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [vsResults])
 
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true)
       try {
-        // Build query string from searchParams
         const queryString = searchParams.toString()
         const url = queryString
           ? `/api/products?page=${currentPage}&${queryString}`
@@ -33,7 +51,6 @@ export default function ProductsPage() {
 
         setProducts(data.products || [])
         setTotalPages(data.totalPages || 1)
-        setTotal(data.total || 0)
       } catch (error) {
         console.error('Error fetching products:', error)
       } finally {
@@ -111,13 +128,116 @@ export default function ProductsPage() {
     <div className='container mx-auto px-4 py-8'>
       {/* Page Header */}
       <div className='mb-6'>
-        <h1 className='text-2xl font-bold'>Tất Cả Sản Phẩm</h1>
+        <h1 className='text-2xl font-bold'>
+          {vsState === 'results' && vsResults.length > 0 ? 'Kết Quả Tìm Kiếm Hình Ảnh' : 'Tất Cả Sản Phẩm'}
+        </h1>
         {!loading && (
           <p className='text-sm text-muted-foreground mt-1'>
-            Hiển thị {products.length} trong {total} sản phẩm
+            {vsState === 'results' && vsResults.length > 0
+              ? `Tìm thấy ${vsResults.length} sản phẩm tương tự`
+              : `Hiển thị ${products.length} sản phẩm`}
           </p>
         )}
       </div>
+
+      {/* Visual Search Banner */}
+      {vsState === 'results' && vsResults.length > 0 && (
+        <div className='mb-6 flex items-center gap-4 p-4 bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl border'>
+          {vsPreview ? (
+            <div className='relative w-16 h-16 shrink-0 rounded-lg overflow-hidden border bg-white'>
+              <Image src={vsPreview} alt='Search image' fill className='object-contain p-1' unoptimized />
+            </div>
+          ) : (
+            <div className='w-16 h-16 shrink-0 rounded-lg border bg-muted flex items-center justify-center'>
+              <Camera className='w-6 h-6 text-muted-foreground' />
+            </div>
+          )}
+          <div className='flex-1 min-w-0'>
+            <div className='flex items-center gap-2 mb-1'>
+              <Sparkles className='w-4 h-4 text-primary' />
+              <span className='font-semibold text-sm'>Tìm giày bằng hình ảnh</span>
+            </div>
+            {vsMlInfo && (
+              <div className='flex flex-wrap gap-2 text-xs text-muted-foreground'>
+                {vsMlInfo.predictedBrand && (
+                  <Badge variant='secondary' className='text-xs'>
+                    Thương hiệu: {SIMILARITY_LABELS[vsMlInfo.predictedBrand] || vsMlInfo.predictedBrand.replace(/_/g, ' ')}
+                  </Badge>
+                )}
+                {vsMlInfo.dominantColors.length > 0 && (
+                  <div className='flex items-center gap-1'>
+                    <span className='text-xs'>Màu:</span>
+                    {vsMlInfo.dominantColors.slice(0, 3).map((c) => (
+                      <div
+                        key={c.hex}
+                        className='w-4 h-4 rounded-full border'
+                        style={{ backgroundColor: c.hex }}
+                        title={c.name}
+                      />
+                    ))}
+                  </div>
+                )}
+                <span className='text-xs text-muted-foreground'>
+                  Phân tích trong {vsMlInfo.processingTimeMs}ms
+                </span>
+              </div>
+            )}
+          </div>
+          <Button
+            variant='ghost'
+            size='sm'
+            onClick={() => {
+              reset()
+              router.push('/products')
+            }}
+            className='gap-1.5 shrink-0'
+          >
+            <X className='h-4 w-4' />
+            Xoá tìm kiếm
+          </Button>
+        </div>
+      )}
+
+      {/* Visual Search Analyzing State */}
+      {vsState === 'analyzing' && (
+        <div className='mb-6 flex items-center gap-4 p-6 bg-primary/5 rounded-xl border border-primary/20'>
+          <div className='w-16 h-16 shrink-0 rounded-lg overflow-hidden border bg-gray-100 relative'>
+            {vsPreview ? (
+              <Image src={vsPreview} alt='Search image' fill className='object-contain p-1' unoptimized />
+            ) : (
+              <div className='w-full h-full flex items-center justify-center'>
+                <Camera className='w-6 h-6 text-muted-foreground' />
+              </div>
+            )}
+          </div>
+          <div className='flex-1'>
+            <div className='flex items-center gap-2 mb-1'>
+              <Sparkles className='w-4 h-4 text-primary animate-pulse' />
+              <span className='font-semibold text-sm'>AI đang phân tích hình ảnh...</span>
+            </div>
+            <p className='text-xs text-muted-foreground'>
+              CLIP đang trích xuất đặc trưng và tìm sản phẩm tương tự trong database
+            </p>
+          </div>
+          <div className='flex gap-2 items-center'>
+            {vsMlInfo && vsMlInfo.dominantColors.length > 0 && (
+              <div className='flex gap-1 mr-2'>
+                {vsMlInfo.dominantColors.slice(0, 3).map((c) => (
+                  <div
+                    key={c.hex}
+                    className='w-4 h-4 rounded-full border'
+                    style={{ backgroundColor: c.hex }}
+                    title={c.name}
+                  />
+                ))}
+              </div>
+            )}
+            <div className='animate-spin'>
+              <Sparkles className='w-5 h-5 text-primary' />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Active Filters */}
       {activeFilters.length > 0 && (
@@ -154,21 +274,42 @@ export default function ProductsPage() {
       )}
 
       <div className='flex flex-col lg:flex-row gap-8'>
-        {/* Sidebar */}
-        <aside className='w-full lg:w-64 flex-shrink-0'>
-          <ProductSidebar />
-        </aside>
+        {/* Sidebar - hidden during visual search results */}
+        {vsState !== 'results' && vsState !== 'analyzing' && (
+          <aside className='w-full lg:w-64 flex-shrink-0'>
+            <ProductSidebar />
+          </aside>
+        )}
 
         {/* Main Content */}
-        <main className='flex-1'>
-          <ProductGrid
-            products={products}
-            loading={loading}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-            selectedColor={selectedColor}
-          />
+        <main className={vsState !== 'results' && vsState !== 'analyzing' ? 'flex-1' : 'w-full'}>
+          {/* Visual Search Loading Skeleton */}
+          {vsState === 'analyzing' ? (
+            <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4'>
+              {Array.from({ length: 10 }).map((_, i) => (
+                <div key={i} className='space-y-3'>
+                  <Skeleton className='aspect-square w-full rounded-lg' />
+                  <Skeleton className='h-4 w-3/4' />
+                  <Skeleton className='h-4 w-1/2' />
+                  <Skeleton className='h-8 w-full' />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <ProductGrid
+              products={products}
+              loading={loading}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              selectedColor={selectedColor}
+              visualSearchResults={vsState === 'results' ? vsResults : undefined}
+              onClearVisualSearch={() => {
+                reset()
+                router.push('/products')
+              }}
+            />
+          )}
         </main>
       </div>
     </div>
