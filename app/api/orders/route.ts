@@ -30,24 +30,18 @@ export async function POST(req: Request) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return new NextResponse('Unauthorized: User ID is required', {
-        status: 401,
-      })
+      return NextResponse.json({ error: 'Unauthorized: User ID is required' }, { status: 401 })
     }
 
     const body = await req.json()
     const { items, shippingInfo, total } = body as OrderBody
 
     if (!items?.length) {
-      return new NextResponse('Bad Request: Cart items are required', {
-        status: 400,
-      })
+      return NextResponse.json({ error: 'Bad Request: Cart items are required' }, { status: 400 })
     }
 
     if (!shippingInfo) {
-      return new NextResponse('Bad Request: Shipping information is required', {
-        status: 400,
-      })
+      return NextResponse.json({ error: 'Bad Request: Shipping information is required' }, { status: 400 })
     }
 
     // Verify all products exist
@@ -61,8 +55,8 @@ export async function POST(req: Request) {
       const missingProductIds = productIds.filter(
         (id) => !foundProductIds.includes(id)
       )
-      return new NextResponse(
-        'Products not found: ' + missingProductIds.join(', '),
+      return NextResponse.json(
+        { error: 'Products not found: ' + missingProductIds.join(', ') },
         { status: 400 }
       )
     }
@@ -79,16 +73,19 @@ export async function POST(req: Request) {
       })
 
       if (!sizeStock || sizeStock.stock < item.quantity) {
-        return new NextResponse(
-          'Insufficient stock for size ' +
-            item.selectedSize +
-            ' of product ' +
-            item.productId +
-            ' (available: ' +
-            (sizeStock?.stock ?? 0) +
-            ', requested: ' +
-            item.quantity +
-            ')',
+        return NextResponse.json(
+          {
+            error:
+              'Insufficient stock for size ' +
+              item.selectedSize +
+              ' of product ' +
+              item.productId +
+              ' (available: ' +
+              (sizeStock?.stock ?? 0) +
+              ', requested: ' +
+              item.quantity +
+              ')',
+          },
           { status: 400 }
         )
       }
@@ -177,9 +174,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ orderId: order.id })
   } catch (error) {
     console.error('[ORDERS_POST]', error)
-    if (error instanceof Error) {
-      return new NextResponse('Error: ' + error.message, { status: 500 })
-    }
-    return new NextResponse('Internal error', { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
   }
 }

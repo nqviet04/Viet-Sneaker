@@ -22,9 +22,6 @@ export function OrderSummary() {
         // ignore
       }
     }
-    return () => {
-      cart.clearBuyNowItem()
-    }
   }, [])
 
   const displayItems = buyNowItem ? [buyNowItem] : items

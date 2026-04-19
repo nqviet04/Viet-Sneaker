@@ -11,14 +11,14 @@ export async function POST(req: Request) {
     const session = await auth()
 
     if (!session?.user) {
-      return new NextResponse('Unauthorized', { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await req.json()
     const { items, shippingAddress } = body
 
     if (!items?.length || !shippingAddress) {
-      return new NextResponse('Bad request', { status: 400 })
+      return NextResponse.json({ error: 'Bad request' }, { status: 400 })
     }
 
     // Create Stripe payment intent
@@ -74,6 +74,6 @@ export async function POST(req: Request) {
     })
   } catch (error) {
     console.error('[CHECKOUT_ERROR]', error)
-    return new NextResponse('Internal error', { status: 500 })
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }
