@@ -75,6 +75,9 @@ export function ProductCard({
   const activeColor = externalColor !== undefined ? externalColor : internalColor
 
   const getDisplayImage = (): string => {
+    const validImages = product.images.filter(Boolean)
+    if (!validImages.length) return ''
+
     if (activeColor && product.colorImages) {
       const normalized = activeColor.toLowerCase().trim()
 
@@ -92,7 +95,7 @@ export function ProductCard({
         }
       }
     }
-    return product.images[0] || ''
+    return validImages[0]
   }
 
   const displayImage = getDisplayImage()
@@ -293,12 +296,12 @@ export function ProductCard({
           </div>
         )}
         <Button
-          className='w-full'
+          className='w-full mt-2'
           size={compact ? 'sm' : 'default'}
           onClick={handleAddToCart}
           disabled={isOutOfStock}
         >
-          {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+          {isOutOfStock ? 'Out of Stock' : 'Thêm vào giỏ hàng'}
         </Button>
       </CardFooter>
     </Card>

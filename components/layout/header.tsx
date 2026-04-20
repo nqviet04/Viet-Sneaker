@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, User, LogOut, X, ShoppingBag, ChevronDown, Camera, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useSession, signIn, signOut } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { CartBadge } from '@/components/layout/cart-badge'
 import { useVisualSearchStore } from '@/store/use-visual-search'
 import { useToast } from '@/hooks/use-toast'
@@ -162,20 +162,22 @@ export function Header() {
   return (
     <header className='border-b sticky top-0 z-50 bg-white'>
       <div className='container mx-auto px-4 sm:px-6 lg:px-8'>
-        <div className='flex h-16 items-center justify-between'>
-          {/* Logo */}
-          <div className='flex-shrink-0'>
-            <Link
-              href='/'
-              className='flex items-center gap-2 text-xl font-bold tracking-tight'
-            >
-              <ShoppingBag className='h-6 w-6' />
-              <span>Viet Sneaker</span>
-            </Link>
-          </div>
+        <div className='flex h-16 items-center justify-between gap-4'>
+          {/* Left: Logo + Nav */}
+          <div className='flex items-center gap-6'>
+            {/* Logo */}
+            <div className='flex-shrink-0'>
+              <Link
+                href='/'
+                className='flex items-center gap-2 text-xl font-bold tracking-tight'
+              >
+                <ShoppingBag className='h-6 w-6' />
+                <span>Viet Sneaker</span>
+              </Link>
+            </div>
 
-          {/* Navigation */}
-          <nav className='hidden md:flex items-center gap-1'>
+            {/* Navigation */}
+            <nav className='hidden md:flex items-center gap-1'>
             {/* Home */}
             <Link
               href='/'
@@ -226,9 +228,10 @@ export function Header() {
             </Link>
 
           </nav>
+          </div>
 
-          {/* Search + Visual Search */}
-          <div className='hidden sm:block flex-1 max-w-2xl mx-6'>
+          {/* Search + Right side */}
+          <div className='hidden lg:flex flex-1 max-w-2xl justify-center px-4'>
             <form onSubmit={handleSearch} className='relative flex items-center gap-2'>
               <div className='relative flex-1'>
                 <Input
@@ -402,9 +405,14 @@ export function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant='default' size='sm' onClick={() => signIn()}>
-                Đăng nhập
-              </Button>
+              <div className='flex items-center gap-2'>
+                <Button variant='ghost' size='sm' asChild>
+                  <Link href='/sign-in'>Đăng nhập</Link>
+                </Button>
+                <Button variant='default' size='sm' asChild>
+                  <Link href='/sign-up'>Đăng ký</Link>
+                </Button>
+              </div>
             )}
           </div>
         </div>

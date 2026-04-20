@@ -11,7 +11,9 @@ interface ProductGalleryProps {
 export function ProductGallery({ images }: ProductGalleryProps) {
   const [selectedImage, setSelectedImage] = useState(0)
 
-  if (!images.length) {
+  const validImages = images.filter(Boolean)
+
+  if (!validImages.length) {
     return (
       <div className='aspect-square w-full bg-secondary flex items-center justify-center rounded-lg'>
         <span className='text-muted-foreground'>No image available</span>
@@ -24,7 +26,7 @@ export function ProductGallery({ images }: ProductGalleryProps) {
       {/* Main Image */}
       <div className='aspect-square w-full relative rounded-lg overflow-hidden'>
         <Image
-          src={images[selectedImage]}
+          src={validImages[selectedImage]}
           alt='Product image'
           fill
           className='object-cover'
@@ -35,9 +37,9 @@ export function ProductGallery({ images }: ProductGalleryProps) {
       </div>
 
       {/* Thumbnails */}
-      {images.length > 1 && (
+      {validImages.length > 1 && (
         <div className='grid grid-cols-4 gap-4'>
-          {images.map((image, index) => (
+          {validImages.map((image, index) => (
             <button
               key={image}
               className={cn(

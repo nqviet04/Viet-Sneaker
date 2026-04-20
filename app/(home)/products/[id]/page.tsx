@@ -34,6 +34,7 @@ async function getProduct(id: string) {
 
   return {
     ...product,
+    colorImages: product.colorImages as Record<string, string[]> | null,
     stock: realStock,
   }
 }
@@ -73,7 +74,7 @@ export default async function ProductPage(props: ProductPageProps) {
           href='/size-guide'
           className='text-sm text-muted-foreground hover:text-foreground underline underline-offset-4 transition-colors'
         >
-          Size Guide
+          Hướng dẫn chọn size
         </Link>
       </div>
 

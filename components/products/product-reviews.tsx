@@ -74,7 +74,7 @@ export function ProductReviews({ productId, reviews }: ProductReviewsProps) {
 
   return (
     <div className='space-y-8'>
-      <h2 className='text-2xl font-bold'>Customer Reviews</h2>
+      <h2 className='text-2xl font-bold'>Đánh giá của khách hàng</h2>
 
       {/* Review Form */}
       {showThankYou ? (
@@ -138,7 +138,7 @@ export function ProductReviews({ productId, reviews }: ProductReviewsProps) {
       {/* Reviews List */}
       <div className='space-y-6'>
         {reviews.length === 0 ? (
-          <p className='text-muted-foreground'>No reviews yet.</p>
+          <p className='text-muted-foreground'>Chưa có đánh giá nào.</p>
         ) : (
           reviews.map((review) => (
             <div key={review.id} className='space-y-2'>

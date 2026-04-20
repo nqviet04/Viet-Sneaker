@@ -298,7 +298,7 @@ export function ProductInfo({ product, selectedColor: externalColor, onColorChan
         </div>
 
         {/* CTA Buttons */}
-        <div className='grid grid-cols-2 gap-3'>
+        <div className='grid grid-cols-2 gap-3 mt-4'>
           <Button
             variant='outline'
             onClick={handleAddToCart}

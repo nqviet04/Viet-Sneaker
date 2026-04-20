@@ -84,9 +84,9 @@ export default async function BrandsPage() {
 
       {/* Page Header */}
       <div className='mb-8'>
-        <h1 className='text-3xl font-bold mb-2'>Shop by Brand</h1>
+        <h1 className='text-3xl font-bold mb-2'>Mua sắm theo thương hiệu</h1>
         <p className='text-muted-foreground'>
-          Explore our collection of premium footwear brands
+        Khám phá bộ sưu tập các mẫu giày từ các thương hiệu nổi bật
         </p>
       </div>
 

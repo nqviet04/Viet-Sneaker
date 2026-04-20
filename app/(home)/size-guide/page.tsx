@@ -4,7 +4,7 @@ import { Home, ChevronRight } from 'lucide-react'
 export default function SizeGuidePage() {
   const sizeCharts = [
     {
-      gender: "Women's",
+      gender: 'Nữ',
       sizes: [
         { us: '5', uk: '2.5', eu: '35', cm: '22' },
         { us: '5.5', uk: '3', eu: '35.5', cm: '22.5' },
@@ -20,7 +20,7 @@ export default function SizeGuidePage() {
       ],
     },
     {
-      gender: "Men's",
+      gender: 'Nam',
       sizes: [
         { us: '6', uk: '5.5', eu: '38.5', cm: '24' },
         { us: '6.5', uk: '6', eu: '39', cm: '24.5' },
@@ -38,7 +38,7 @@ export default function SizeGuidePage() {
       ],
     },
     {
-      gender: 'Kids\'',
+      gender: 'Trẻ em',
       sizes: [
         { us: '3.5', uk: '2.5', eu: '35', cm: '22' },
         { us: '4', uk: '3', eu: '36', cm: '23' },
@@ -60,30 +60,30 @@ export default function SizeGuidePage() {
           <Home className='h-4 w-4' />
         </Link>
         <ChevronRight className='h-4 w-4' />
-        <span className='text-foreground font-medium'>Size Guide</span>
+        <span className='text-foreground font-medium'>Hướng dẫn chọn size</span>
       </nav>
 
       <div className='max-w-4xl mx-auto'>
         {/* Header */}
         <div className='mb-8'>
-          <h1 className='text-3xl font-bold mb-2'>Size Guide</h1>
+          <h1 className='text-3xl font-bold mb-2'>Hướng dẫn chọn size</h1>
           <p className='text-muted-foreground'>
-            Find your perfect fit with our comprehensive size charts. Measure your
-            foot length in centimeters and match it to the corresponding size.
+            Tìm size giày phù hợp với bảng size chi tiết của chúng tôi. Đo chiều dài bàn chân
+            bằng centimet và đối chiếu với size tương ứng.
           </p>
         </div>
 
         {/* How to Measure */}
         <div className='bg-gray-50 rounded-xl p-6 mb-8'>
-          <h2 className='text-lg font-semibold mb-3'>How to Measure Your Feet</h2>
+          <h2 className='text-lg font-semibold mb-3'>Cách đo chân</h2>
           <ol className='space-y-2 text-sm text-muted-foreground'>
             <li className='flex gap-3'>
               <span className='flex-shrink-0 w-6 h-6 rounded-full bg-black text-white text-xs flex items-center justify-center font-bold'>
                 1
               </span>
               <span>
-                <strong>Stand on a piece of paper</strong> — Place a sheet of paper
-                on a hard floor. Stand on it with your heel against a wall.
+                <strong>Đặt chân lên giấy</strong> — Đặt một tờ giấy lên sàn cứng. Đứng lên
+                tờ giấy với gót chân sát tường.
               </span>
             </li>
             <li className='flex gap-3'>
@@ -91,9 +91,8 @@ export default function SizeGuidePage() {
                 2
               </span>
               <span>
-                <strong>Trace your foot</strong> — Have someone trace the outline of
-                your foot while you stand still. Keep the pencil perpendicular to the
-                paper.
+                <strong>Vẽ bàn chân</strong> — Nhờ người khác vẽ theo viền bàn chân trong khi
+                bạn đứng yên. Giữ bút vuông góc với giấy.
               </span>
             </li>
             <li className='flex gap-3'>
@@ -101,8 +100,8 @@ export default function SizeGuidePage() {
                 3
               </span>
               <span>
-                <strong>Measure</strong> — Measure the length from the wall to the
-                tip of your longest toe in centimeters.
+                <strong>Đo chiều dài</strong> — Đo khoảng cách từ tường đến ngón chân dài nhất
+                theo đơn vị centimet.
               </span>
             </li>
             <li className='flex gap-3'>
@@ -110,8 +109,8 @@ export default function SizeGuidePage() {
                 4
               </span>
               <span>
-                <strong>Match to the chart</strong> — Find your foot length on the
-                chart below to determine your size.
+                <strong>Đối chiếu bảng size</strong> — Tìm chiều dài bàn chân của bạn trong
+                bảng dưới đây để xác định size giày.
               </span>
             </li>
           </ol>
@@ -121,7 +120,7 @@ export default function SizeGuidePage() {
         <div className='space-y-8'>
           {sizeCharts.map(({ gender, sizes }) => (
             <div key={gender}>
-              <h2 className='text-lg font-semibold mb-3'>{gender} Sizes</h2>
+              <h2 className='text-lg font-semibold mb-3'>Size giày {gender}</h2>
               <div className='overflow-x-auto'>
                 <table className='w-full text-sm'>
                   <thead>
@@ -151,13 +150,13 @@ export default function SizeGuidePage() {
         {/* Tips */}
         <div className='mt-8 bg-amber-50 border border-amber-200 rounded-xl p-6'>
           <h2 className='text-lg font-semibold mb-3 text-amber-800'>
-            Fit Tips
+            Mẹo chọn size
           </h2>
           <ul className='space-y-2 text-sm text-amber-700'>
-            <li>• If you\'re between sizes, we recommend going up half a size.</li>
-            <li>• Feet tend to swell during the day — try shoes on in the afternoon.</li>
-            <li>• Brand sizing can vary — always check the specific size chart on the product page.</li>
-            <li>• Our shoes are designed with some break-in flexibility. If it feels snug at first, give it a few wears.</li>
+            <li>• Nếu bạn nằm giữa hai size, hãy chọn size lớn hơn nửa size.</li>
+            <li>• Bàn chân thường sưng lên trong ngày — nên thử giày vào buổi chiều.</li>
+            <li>• Size giày có thể khác nhau giữa các thương hiệu — luôn kiểm tra bảng size trên trang sản phẩm.</li>
+            <li>• Giày được thiết kế có độ linh hoạt khi break-in. Nếu ban đầu cảm thấy hơi chật, hãy mang thêm vài lần.</li>
           </ul>
         </div>
       </div>

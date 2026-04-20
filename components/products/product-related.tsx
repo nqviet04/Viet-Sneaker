@@ -52,7 +52,7 @@ export function ProductRelated({
 
   return (
     <div className='space-y-4'>
-      <h2 className='text-2xl font-bold'>Related Products</h2>
+      <h2 className='text-2xl font-bold'>Các sản phẩm liên quan</h2>
       <Carousel className='w-full'>
         <CarouselContent>
           {products.map((product) => (
