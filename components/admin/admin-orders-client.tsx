@@ -120,6 +120,11 @@ interface OrderDetail extends Order {
 // ============================================
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
+  AWAITING_PAYMENT: {
+    label: 'Chờ thanh toán',
+    color: 'bg-orange-100 text-orange-800 border-orange-200',
+    icon: Clock,
+  },
   PENDING: {
     label: 'Chờ xử lý',
     color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
@@ -151,6 +156,11 @@ const statusConfig: Record<string, { label: string; color: string; icon: React.E
     icon: DollarSign,
   },
   // Handle lowercase from database
+  awaiting_payment: {
+    label: 'Chờ thanh toán',
+    color: 'bg-orange-100 text-orange-800 border-orange-200',
+    icon: Clock,
+  },
   pending: {
     label: 'Chờ xử lý',
     color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
@@ -184,6 +194,7 @@ const statusConfig: Record<string, { label: string; color: string; icon: React.E
 }
 
 const statusTransitions: Record<string, string[]> = {
+  AWAITING_PAYMENT: ['CANCELLED'],
   PENDING: ['PROCESSING', 'CANCELLED'],
   PROCESSING: ['SHIPPED', 'CANCELLED'],
   SHIPPED: ['DELIVERED', 'CANCELLED'],
@@ -191,6 +202,7 @@ const statusTransitions: Record<string, string[]> = {
   CANCELLED: [],
   REFUNDED: [],
   // Handle lowercase
+  awaiting_payment: ['cancelled'],
   pending: ['processing', 'cancelled'],
   processing: ['shipped', 'cancelled'],
   shipped: ['delivered', 'cancelled'],

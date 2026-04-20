@@ -17,6 +17,9 @@ interface ShippingInfo {
   state: string
   zipCode: string
   country: string
+  phone?: string
+  fullName: string
+  email: string
 }
 
 interface OrderBody {
@@ -104,6 +107,7 @@ export async function POST(req: Request) {
       data: {
         fullName: shippingInfo.fullName,
         email: shippingInfo.email,
+        phone: shippingInfo.phone || null,
         street: shippingInfo.address,
         city: shippingInfo.city,
         state: shippingInfo.state,
@@ -127,6 +131,7 @@ export async function POST(req: Request) {
           tax: tax ?? 0,
           total,
           paymentMethod: paymentMethod === 'cod' ? 'COD' : 'BANK_TRANSFER',
+          status: paymentMethod === 'cod' ? 'PENDING' : 'AWAITING_PAYMENT',
           items: {
             create: items.map((item) => ({
               productId: item.productId,

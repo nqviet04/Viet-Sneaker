@@ -19,7 +19,7 @@
  * - Dry run mode: chỉ hiển thị sản phẩm cần encode, không lưu
  */
 
-import { PrismaClient, Brand, Gender, ShoeType } from "@prisma/client";
+import { PrismaClient, Prisma, Brand, Gender, ShoeType } from "@prisma/client";
 import * as fs from "fs";
 import * as path from "path";
 import * as https from "https";
@@ -149,6 +149,13 @@ async function main() {
   const args = process.argv.slice(2);
   const dryRun = args.includes("--dry-run");
   const brandFilter = args.find((a) => a.startsWith("--brand="))?.split("=")[1];
+  const productIdFilter = args.find((a) => a.startsWith("--id="))?.split("=")[1];
+
+  if (productIdFilter) {
+    await generateForSingleProduct(productIdFilter, dryRun);
+    await prisma.$disconnect();
+    return;
+  }
 
   console.log("=".repeat(60));
   console.log("Generate CLIP Embeddings for VietSneaker");
@@ -289,13 +296,14 @@ async function main() {
             // Build embedding string for PostgreSQL vector type
             const embeddingStr = `[${result.embedding.join(",")}]`;
 
-            await prisma.product.update({
-              where: { id: result.id },
-              data: {
-                embedding: embeddingStr as unknown as object,
-                dominantColors: normalizedColors,
-              },
-            });
+            // Use $queryRaw because embedding is an Unsupported (pgvector) field
+            await prisma.$executeRaw`
+              UPDATE "Product"
+              SET
+                embedding = ${embeddingStr}::vector,
+                "dominantColors" = ${Prisma.join(normalizedColors.map((c) => c))}
+              WHERE id = ${result.id}
+            `;
           }
         }
 
@@ -344,16 +352,118 @@ Usage:
 Options:
   --dry-run        Preview products without saving
   --brand=NIKE     Only process Nike products
+  --id=<uuid>     Process a single product by ID
 
 Examples:
   npx tsx scripts/generate-embeddings.ts
   npx tsx scripts/generate-embeddings.ts --dry-run
   npx tsx scripts/generate-embeddings.ts --brand=ADIDAS
+  npx tsx scripts/generate-embeddings.ts --id=abc-123-def
 
 Prerequisites:
   1. ML service must be running: uvicorn services.ml-service.main:app --port 8080
   2. Database must have products with images
 `);
+}
+
+
+// ============================================================
+// SINGLE PRODUCT
+// ============================================================
+
+async function generateForSingleProduct(productId: string, dryRun: boolean) {
+  console.log("=".repeat(60));
+  console.log("Generate Embedding for Single Product");
+  console.log("=".repeat(60));
+  console.log(`Product ID: ${productId}`);
+  console.log(`Mode: ${dryRun ? "DRY RUN (no changes)" : "LIVE (will update database)"}`);
+  console.log();
+
+  // Use $queryRaw because embedding is an Unsupported field (pgvector)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [product]: any[] = await prisma.$queryRaw`
+    SELECT id, name, "images"::text, brand, colors, embedding
+    FROM "Product"
+    WHERE id = ${productId}
+  `;
+
+  if (!product) {
+    console.error(`Product with ID "${productId}" not found.`);
+    process.exit(1);
+  }
+
+  console.log(`Name: ${product.name}`);
+  console.log(`Brand: ${product.brand}`);
+  console.log(`Current embedding: ${product.embedding ? "exists" : "null"}`);
+  // Parse images from raw query result (could be string or array depending on driver)
+  const rawImages = product.images;
+  const images: string[] = typeof rawImages === "string" ? JSON.parse(rawImages) : rawImages || [];
+
+  console.log(`Name: ${product.name}`);
+  console.log(`Brand: ${product.brand}`);
+  console.log(`Current embedding: ${product.embedding ? "exists" : "null"}`);
+  console.log(`Images: ${images.length}`);
+
+  if (!images.length) {
+    console.error("Product has no images. Cannot generate embedding.");
+    process.exit(1);
+  }
+
+  const imageUrl = images[0];
+  console.log(`Image URL: ${imageUrl}`);
+  console.log();
+
+  try {
+    console.log("Downloading image...");
+    const imageBuffer = await downloadImage(imageUrl);
+    const base64 = imageBuffer.toString("base64");
+
+    console.log("Calling ML service...");
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60_000);
+
+    const response = await fetch(`${ML_SERVICE_URL}/analyze`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image: base64, include_embedding: true }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      throw new Error(`ML service returned ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (dryRun) {
+      console.log();
+      console.log("DRY RUN - No changes saved.");
+      console.log(`Embedding dimension: ${data.embedding?.length ?? 0}`);
+      console.log(`Dominant colors: ${(data.dominant_colors || []).map((c: any) => c.name).join(", ") || "none"}`);
+    } else {
+      const normalizedColors = (data.dominant_colors || [])
+        .map((c: any) => toStandardColor(c.name))
+        .filter((c: string | null): c is string => c !== null);
+
+      await prisma.$executeRaw`
+        UPDATE "Product"
+        SET
+          embedding = ${`[${data.embedding.join(",")}]`}::vector,
+          "dominantColors" = ${Prisma.join(normalizedColors)}
+        WHERE id = ${productId}
+      `;
+
+      console.log();
+      console.log("SUCCESS - Embedding updated!");
+      console.log(`Dominant colors: ${normalizedColors.join(", ") || "none"}`);
+    }
+  } catch (error) {
+    console.error(`Error: ${error}`);
+    process.exit(1);
+  }
+
+  console.log("=".repeat(60));
 }
 
 

@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 import type { VisualSearchResult } from '@/store/use-visual-search'
 import type { DetectedColor } from '@/lib/color-utils'
 import { findBestMatchingColor } from '@/lib/color-utils'
+import { useState } from 'react'
 
 interface ProductGridProps {
   products: Product[]
@@ -46,10 +47,18 @@ export function ProductGrid({
 }: ProductGridProps) {
   const isVisualSearch = visualSearchResults !== undefined
 
-  // When showing visual search results, pick the best-matching color for each product
-  const getVisualSearchColor = (productColors: string[]): string | undefined => {
-    if (!detectedColors?.length) return undefined
-    return findBestMatchingColor(detectedColors, productColors)
+  // Track selected color per product in visual search mode
+  const [selectedColorsMap, setSelectedColorsMap] = useState<Record<string, string>>({})
+
+  const getVisualSearchColor = (product: VisualSearchResult): string | undefined => {
+    const overridden = selectedColorsMap[product.id]
+    if (overridden) return overridden
+    if (detectedColors?.length) return findBestMatchingColor(detectedColors, product.colors)
+    return undefined
+  }
+
+  const handleColorChange = (productId: string, color: string) => {
+    setSelectedColorsMap((prev) => ({ ...prev, [productId]: color }))
   }
 
   if (loading && !isVisualSearch) {
@@ -86,7 +95,7 @@ export function ProductGrid({
       <div className='space-y-8'>
         <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4'>
           {visualSearchResults.map((product) => {
-            const matchedColor = getVisualSearchColor(product.colors)
+            const matchedColor = getVisualSearchColor(product)
             return (
               <div key={product.id} className='relative'>
                 <ProductCard
@@ -106,6 +115,7 @@ export function ProductGrid({
                   }}
                   showBadges
                   selectedColor={matchedColor}
+                  onColorChange={(color) => handleColorChange(product.id, color)}
                 />
                 <div className='absolute top-3 right-3 z-10'>
                   <SimilarityBadge score={product.similarityScore} />

@@ -29,6 +29,7 @@ import { PROVINCES, WARDS, type Province, type Ward } from '@/lib/vietnam-region
 const shippingFormSchema = z.object({
   fullName: z.string().min(2, 'Họ tên phải có ít nhất 2 ký tự'),
   email: z.string().email('Địa chỉ email không hợp lệ'),
+  phone: z.string().min(10, 'Số điện thoại phải có ít nhất 10 số').regex(/^\d+$/, 'Số điện thoại chỉ chứa chữ số'),
   address: z.string().min(5, 'Địa chỉ phải có ít nhất 5 ký tự'),
   province: z.string().min(1, 'Vui lòng chọn Tỉnh/Thành phố'),
   ward: z.string().min(1, 'Vui lòng chọn Phường/Xã'),
@@ -173,6 +174,7 @@ export function ShippingForm() {
     defaultValues: {
       fullName: '',
       email: '',
+      phone: '',
       address: '',
       province: '',
       ward: '',
@@ -231,6 +233,7 @@ export function ShippingForm() {
       const shippingInfo = {
         fullName: data.fullName,
         email: data.email,
+        phone: data.phone,
         address: data.address,
         city: `${wardName}, ${provinceName}`,
         state: '',
@@ -311,6 +314,20 @@ export function ShippingForm() {
               <FormLabel>Email</FormLabel>
               <FormControl>
                 <Input placeholder='email@example.com' type='email' {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name='phone'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Số điện thoại</FormLabel>
+              <FormControl>
+                <Input placeholder='0912 345 678' {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

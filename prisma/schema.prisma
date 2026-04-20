@@ -36,6 +36,7 @@ enum Role {
  * Trạng thái đơn hàng
  */
 enum OrderStatus {
+  AWAITING_PAYMENT
   PENDING
   PROCESSING
   SHIPPED
@@ -359,6 +360,7 @@ model Address {
   orders     Order[]
   fullName   String
   email      String
+  phone      String?
   street     String
   city       String
   state      String

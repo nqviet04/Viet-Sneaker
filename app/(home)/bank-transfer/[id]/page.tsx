@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { auth } from '@/auth'
 import prisma from '@/lib/prisma'
 import { BankTransferContent } from '@/components/checkout/bank-transfer-content'
+import { BankTransferPageWrapper } from '@/components/checkout/bank-transfer-page-wrapper'
 
 type tParams = Promise<{ id: string }>
 
@@ -44,14 +45,17 @@ export default async function BankTransferPage({ params }: PageProps) {
   const total = order.total
 
   return (
-    <BankTransferContent
-      orderId={id}
-      total={total}
-      subtotal={subtotal}
-      shipping={shipping}
-      tax={tax}
-      orderItems={order.items}
-      shippingAddress={order.shippingAddress}
-    />
+    <BankTransferPageWrapper orderId={id}>
+      <BankTransferContent
+        orderId={id}
+        total={total}
+        subtotal={subtotal}
+        shipping={shipping}
+        tax={tax}
+        orderItems={order.items}
+        shippingAddress={order.shippingAddress}
+        orderDate={order.createdAt.toISOString()}
+      />
+    </BankTransferPageWrapper>
   )
 }

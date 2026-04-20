@@ -62,10 +62,11 @@ export default async function OrdersPage() {
                       }
                       className='capitalize'
                     >
-                      {order.status === 'PENDING' ? 'Chờ xử lý' : 
-                       order.status === 'PROCESSING' ? 'Đang xử lý' : 
-                       order.status === 'SHIPPED' ? 'Đang giao' : 
-                       order.status === 'DELIVERED' ? 'Đã giao' : 
+                      {order.status === 'AWAITING_PAYMENT' ? 'Chờ thanh toán' :
+                       order.status === 'PENDING' ? 'Chờ xử lý' :
+                       order.status === 'PROCESSING' ? 'Đang xử lý' :
+                       order.status === 'SHIPPED' ? 'Đang giao' :
+                       order.status === 'DELIVERED' ? 'Đã giao' :
                        order.status === 'CANCELLED' ? 'Đã hủy' : order.status.toLowerCase()}
                     </Badge>
                   </div>

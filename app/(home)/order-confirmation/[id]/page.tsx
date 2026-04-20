@@ -69,7 +69,7 @@ export default async function OrderConfirmationPage({ params }: PageProps) {
             <CheckCircle className='h-8 w-8 text-green-500' />
             <div>
               <h1 className='text-2xl font-bold'>Đặt hàng thành công!</h1>
-              <p className='text-gray-500'>Mã đơn hàng #{id.slice(0, 8).toUpperCase()}</p>
+              <p className='text-gray-500'>Mã đơn hàng #{id.slice(-8)}</p>
             </div>
           </div>
 
@@ -129,7 +129,34 @@ export default async function OrderConfirmationPage({ params }: PageProps) {
               <br />
               {order.shippingAddress.city}
               <br />
-              Email: {order.shippingAddress.email}
+              <span>Email: {order.shippingAddress.email}</span>
+              <br />
+              <span>SĐT nhận hàng: {order.shippingAddress.phone || 'Không có'}</span>
+            </div>
+          </div>
+
+          <div className='space-y-2'>
+            <h2 className='text-lg font-semibold'>Thông tin đơn hàng</h2>
+            <div className='text-gray-500 space-y-1'>
+              <p>
+                <span className='font-medium text-foreground'>Thời gian đặt hàng:</span>{' '}
+                {new Date(order.createdAt).toLocaleString('vi-VN', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </p>
+              <p>
+                <span className='font-medium text-foreground'>Dự kiến nhận hàng:</span>{' '}
+                {new Date(new Date(order.createdAt).getTime() + 3 * 24 * 60 * 60 * 1000).toLocaleString('vi-VN', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                })}{' '}
+                (3 ngày kể từ ngày đặt)
+              </p>
             </div>
           </div>
         </div>

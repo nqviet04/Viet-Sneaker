@@ -31,6 +31,11 @@ export async function GET(request: NextRequest) {
 
     if (status && status !== 'all') {
       where.status = status
+    } else {
+      // By default, exclude AWAITING_PAYMENT orders (they are pending bank transfer)
+      where.status = {
+        not: 'AWAITING_PAYMENT',
+      }
     }
 
     // Order by

@@ -19,6 +19,7 @@ import { useCart } from '@/store/use-cart'
 import { useToast } from '@/hooks/use-toast'
 import { ToastAction } from '@/components/ui/toast'
 import { ColorSelector } from '@/components/products/color-selector'
+import { SizeSelector, ALL_SIZES } from '@/components/products/size-selector'
 
 interface ProductCardProps {
   product: {
@@ -42,6 +43,7 @@ interface ProductCardProps {
   showBadges?: boolean
   compact?: boolean
   selectedColor?: string
+  onColorChange?: (color: string) => void
 }
 
 export function ProductCard({
@@ -50,6 +52,7 @@ export function ProductCard({
   showBadges = false,
   compact = false,
   selectedColor: externalColor,
+  onColorChange: externalOnColorChange,
 }: ProductCardProps) {
   const cart = useCart()
   const { toast } = useToast()
@@ -62,11 +65,13 @@ export function ProductCard({
       ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviewCount
       : 0
 
-  const defaultSize = product.sizes?.[0] || 'default'
+  const hasSizes = product.sizes && product.sizes.length > 0
   const defaultColor = product.colors?.[0] || 'default'
   const isOutOfStock = (product.stock ?? 0) === 0
 
   const [internalColor, setInternalColor] = React.useState('')
+  const [selectedSize, setSelectedSize] = React.useState('')
+  const [sizeError, setSizeError] = React.useState(false)
   const activeColor = externalColor !== undefined ? externalColor : internalColor
 
   const getDisplayImage = (): string => {
@@ -92,6 +97,13 @@ export function ProductCard({
 
   const displayImage = getDisplayImage()
 
+  const handleColorChange = (color: string) => {
+    if (externalOnColorChange) {
+      externalOnColorChange(color)
+    }
+    setInternalColor(color)
+  }
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -105,6 +117,16 @@ export function ProductCard({
       return
     }
 
+    if (hasSizes && !selectedSize) {
+      setSizeError(true)
+      toast({
+        title: 'Vui lòng chọn size',
+        description: 'Bạn cần chọn size trước khi thêm vào giỏ hàng.',
+        variant: 'destructive',
+      })
+      return
+    }
+
     const imageForColor = getDisplayImage()
 
     cart.addItem({
@@ -113,19 +135,24 @@ export function ProductCard({
       price: product.price,
       image: imageForColor,
       quantity: 1,
-      selectedSize: defaultSize,
+      selectedSize: selectedSize || (product.sizes?.[0] ?? 'default'),
       selectedColor: activeColor || defaultColor,
     })
 
+    const displaySize = (selectedSize || product.sizes?.[0]) ?? 'default'
+
     toast({
       title: 'Added to cart',
-      description: product.name + ' (Size ' + defaultSize + ')',
+      description: product.name + ' (Size ' + displaySize + ')',
       action: (
         <ToastAction altText='View cart' asChild>
           <Link href='/cart'>View Cart</Link>
         </ToastAction>
       ),
     })
+
+    setSelectedSize('')
+    setSizeError(false)
   }
 
   return (
@@ -180,7 +207,7 @@ export function ProductCard({
             <ColorSelector
               availableColors={product.colors}
               selectedColor={activeColor}
-              onColorChange={(color) => setInternalColor(color)}
+              onColorChange={handleColorChange}
               compact
             />
           </div>
@@ -230,7 +257,41 @@ export function ProductCard({
         </CardContent>
       </Link>
 
-      <CardFooter className={cn('p-3 pt-0', compact ? 'p-2 pt-0' : 'p-4 pt-0')}>
+      <CardFooter className={cn('p-3 pt-0 flex-col gap-2', compact ? 'p-2 pt-0' : 'p-4 pt-0')}>
+        {hasSizes && (
+          <div className='w-full'>
+            <div className='flex flex-wrap gap-1'>
+              {ALL_SIZES.map((size) => {
+                if (!product.sizes?.includes(size)) return null
+                const isSelected = selectedSize === size
+                return (
+                  <button
+                    key={size}
+                    type='button'
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      setSelectedSize(size)
+                      setSizeError(false)
+                    }}
+                    className={cn(
+                      'h-8 min-w-[2.5rem] px-1.5 rounded border text-xs font-medium transition-all duration-150',
+                      isSelected
+                        ? 'border-black bg-black text-white'
+                        : 'border-gray-200 bg-white text-gray-700 hover:border-gray-400',
+                      sizeError && !selectedSize && 'border-red-400'
+                    )}
+                  >
+                    {size}
+                  </button>
+                )
+              })}
+            </div>
+            {sizeError && !selectedSize && (
+              <p className='text-xs text-red-500 mt-1'>Vui lòng chọn size</p>
+            )}
+          </div>
+        )}
         <Button
           className='w-full'
           size={compact ? 'sm' : 'default'}
