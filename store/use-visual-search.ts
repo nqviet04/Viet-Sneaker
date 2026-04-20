@@ -14,6 +14,7 @@ export interface VisualSearchResult {
   gender: string
   shoeType: string
   colors: string[]
+  sizes: string[]
   stock: number
   similarityScore: number
   finalScore: number

@@ -46,6 +46,7 @@ interface SearchResult {
   gender: string;
   shoeType: string;
   colors: string[];
+  sizes: string[];
   stock: number;
   similarityScore: number;
   brandScore: number;
@@ -454,6 +455,7 @@ export async function visualSearchPipeline(
         gender: true,
         shoeType: true,
         colors: true,
+        sizes: true,
         stock: true,
       },
     });
@@ -469,6 +471,7 @@ export async function visualSearchPipeline(
       gender: product.gender,
       shoeType: product.shoeType,
       colors: product.colors,
+      sizes: product.sizes,
       stock: product.stock,
       similarityScore: 0,
       brandScore: fallbackScoreMap.get(product.id) || 0,
@@ -501,6 +504,7 @@ export async function visualSearchPipeline(
       gender: true,
       shoeType: true,
       colors: true,
+      sizes: true,
       stock: true,
     },
   });
@@ -536,6 +540,7 @@ export async function visualSearchPipeline(
       gender: product.gender,
       shoeType: product.shoeType,
       colors: product.colors,
+      sizes: product.sizes,
       stock: product.stock,
       similarityScore: Math.round(similarityScore * 1000) / 1000,
       brandScore: Math.round(brandScore * 1000) / 1000,

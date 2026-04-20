@@ -112,6 +112,7 @@ export function ProductGrid({
                     stock: product.stock,
                     originalPrice: product.originalPrice,
                     colors: product.colors,
+                    sizes: product.sizes,
                   }}
                   showBadges
                   selectedColor={matchedColor}

@@ -87,6 +87,7 @@ interface Address {
   state: string
   postalCode: string
   country: string
+  phone?: string | null
 }
 
 interface Order {
@@ -102,6 +103,7 @@ interface Order {
   }
   shippingAddress: Address
   items: OrderItem[]
+  paymentMethod?: string | null
   _count?: { items: number }
 }
 
@@ -364,6 +366,19 @@ function OrderDetailDialog({
                 {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postalCode}
               </p>
               <p className='text-sm text-muted-foreground'>{order.shippingAddress.country}</p>
+              {order.shippingAddress.phone && (
+                <p className='text-sm mt-1'>SĐT: {order.shippingAddress.phone}</p>
+              )}
+            </div>
+
+            {/* Payment Method */}
+            <div className='rounded-lg border p-4'>
+              <h3 className='font-semibold mb-2'>Phương Thức Thanh Toán</h3>
+              <p className='text-sm font-medium'>
+                {order.paymentMethod === 'COD' ? 'Thanh toán khi nhận hàng (COD)' :
+                 order.paymentMethod === 'BANK_TRANSFER' ? 'Chuyển khoản ngân hàng' :
+                 order.paymentMethod || 'Không xác định'}
+              </p>
             </div>
 
             {/* Order Items */}

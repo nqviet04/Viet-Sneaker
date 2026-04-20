@@ -30,8 +30,8 @@ export function AddressList({ addresses }: AddressListProps) {
       }
 
       toast({
-        title: 'Address deleted',
-        description: 'Your shipping address has been deleted successfully.',
+        title: 'Đã xóa',
+        description: 'Địa chỉ đã được xóa thành công.',
       })
 
       router.refresh()
@@ -58,9 +58,8 @@ export function AddressList({ addresses }: AddressListProps) {
       }
 
       toast({
-        title: 'Default address updated',
-        description:
-          'Your default shipping address has been updated successfully.',
+        title: 'Thành công',
+        description: 'Địa chỉ mặc định đã được cập nhật.',
       })
 
       router.refresh()
@@ -79,9 +78,9 @@ export function AddressList({ addresses }: AddressListProps) {
     return (
       <div className='flex flex-col items-center justify-center py-8 text-center'>
         <MapPin className='h-12 w-12 text-muted-foreground' />
-        <h3 className='mt-4 text-lg font-semibold'>No addresses found</h3>
+        <h3 className='mt-4 text-lg font-semibold'>Chưa có địa chỉ nào</h3>
         <p className='text-muted-foreground'>
-          Add a new shipping address to get started.
+          Thêm địa chỉ giao hàng mới bên dưới.
         </p>
       </div>
     )
@@ -96,16 +95,18 @@ export function AddressList({ addresses }: AddressListProps) {
         >
           <div className='space-y-1'>
             <div className='flex items-center gap-2'>
-              <p className='font-medium'>{address.street}</p>
+              <p className='font-medium'>{address.fullName || 'Địa chỉ giao hàng'}</p>
               {address.isDefault && (
                 <span className='rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary'>
-                  Default
+                  Mặc định
                 </span>
               )}
             </div>
-            <p className='text-sm text-muted-foreground'>
-              {address.city}, {address.state} {address.postalCode}
-            </p>
+            {address.phone && (
+              <p className='text-sm text-muted-foreground'>SĐT: {address.phone}</p>
+            )}
+            <p className='text-sm text-muted-foreground'>{address.street}</p>
+            <p className='text-sm text-muted-foreground'>{address.city}</p>
             <p className='text-sm text-muted-foreground'>{address.country}</p>
           </div>
           <div className='flex space-x-2'>

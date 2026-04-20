@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { Star } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Star, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -26,10 +27,13 @@ interface ProductReviewsProps {
 
 export function ProductReviews({ productId, reviews }: ProductReviewsProps) {
   const { data: session } = useSession()
+  const router = useRouter()
   const [rating, setRating] = useState(5)
   const [hoverRating, setHoverRating] = useState(0)
   const [comment, setComment] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showThankYou, setShowThankYou] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -50,15 +54,19 @@ export function ProductReviews({ productId, reviews }: ProductReviewsProps) {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to submit review')
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Failed to submit review')
       }
 
-      // Reset form
-      setRating(5)
-      setComment('')
-      // TODO: Update reviews list without full page refresh
+      setShowThankYou(true)
+      setTimeout(() => {
+        router.refresh()
+        setShowThankYou(false)
+        setRating(5)
+        setComment('')
+      }, 2000)
     } catch (error) {
-      console.error('Error submitting review:', error)
+      setErrorMessage((error as Error).message || 'Đã xảy ra lỗi khi gửi đánh giá')
     } finally {
       setIsSubmitting(false)
     }
@@ -69,7 +77,15 @@ export function ProductReviews({ productId, reviews }: ProductReviewsProps) {
       <h2 className='text-2xl font-bold'>Customer Reviews</h2>
 
       {/* Review Form */}
-      {session ? (
+      {showThankYou ? (
+        <div className='flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg'>
+          <CheckCircle className='w-6 h-6 text-green-500' />
+          <div>
+            <p className='font-medium text-green-700'>Cảm ơn bạn đã đánh giá!</p>
+            <p className='text-sm text-green-600'>Đánh giá của bạn sẽ được hiển thị sau khi duyệt.</p>
+          </div>
+        </div>
+      ) : session ? (
         <form onSubmit={handleSubmitReview} className='space-y-4'>
           <div>
             <div className='text-sm font-medium mb-2'>Your Rating</div>
@@ -106,8 +122,12 @@ export function ProductReviews({ productId, reviews }: ProductReviewsProps) {
           </div>
 
           <Button type='submit' disabled={isSubmitting}>
-            {isSubmitting ? 'Submitting...' : 'Submit Review'}
+            {isSubmitting ? 'Đang gửi...' : 'Gửi đánh giá'}
           </Button>
+
+          {errorMessage && (
+            <p className='text-sm text-red-500'>{errorMessage}</p>
+          )}
         </form>
       ) : (
         <div className='bg-muted p-4 rounded-lg'>
