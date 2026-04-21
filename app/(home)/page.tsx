@@ -1,17 +1,10 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import prisma from '@/lib/prisma'
 import { FeaturedBrands } from '@/components/home/featured-brands'
 import { ProductSection } from '@/components/home/product-section'
 import { Button } from '@/components/ui/button'
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from '@/components/ui/carousel'
 import { Shield, Truck, RotateCcw, CreditCard } from 'lucide-react'
+import { HeroCarousel } from '@/components/home/hero-carousel'
 
 async function getHomeData() {
   const [newArrivals, bestSellers, discountedProducts] = await Promise.all([
@@ -38,26 +31,6 @@ async function getHomeData() {
   return { newArrivals, bestSellers, discountedProducts }
 }
 
-const PROMO_BANNERS = [
-  {
-    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff',
-    title: 'Bứt Phá Phong Cách Cùng Mẫu Giày Mới',
-    subtitle: 'Khám phá những thiết kế mới nhất dành cho bạn',
-    cta: { label: 'Khám Phá Ngay', href: '/products?sort=created_desc' },
-  },
-  {
-    image: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a',
-    title: 'Giảm Giá Đến 50%',
-    subtitle: 'Ưu đãi có hạn, mua ngay hôm nay',
-    cta: { label: 'Mua Ngay', href: '/products' },
-  },
-  {
-    image: 'https://images.unsplash.com/photo-1600269452121-4f2416e55c28',
-    title: 'Miễn Phí Vận Chuyển',
-    subtitle: 'Cho đơn hàng từ ₫2.500.000',
-    cta: { label: 'Mua Ngay', href: '/products' },
-  },
-]
 
 export default async function HomePage() {
   const { newArrivals, bestSellers, discountedProducts } = await getHomeData()
@@ -66,43 +39,7 @@ export default async function HomePage() {
     <div className='min-h-screen'>
       {/* Hero Banner Carousel */}
       <section className='relative'>
-        <Carousel opts={{ loop: true }} className='w-full'>
-          <CarouselContent>
-            {PROMO_BANNERS.map((banner, index) => (
-              <CarouselItem key={index}>
-                <div className='relative aspect-[4/3] sm:aspect-video md:aspect-[21/9] w-full overflow-hidden'>
-                  <Image
-                    src={banner.image}
-                    alt={banner.title}
-                    fill
-                    className='object-cover'
-                    priority={index === 0}
-                    sizes='100vw'
-                    quality={90}
-                  />
-                  <div className='absolute inset-0 bg-black/30' />
-                  <div className='absolute inset-0 flex flex-col items-center justify-center text-center text-white px-4'>
-                    <h1 className='text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-3 drop-shadow-lg'>
-                      {banner.title}
-                    </h1>
-                    <p className='text-base sm:text-lg md:text-xl mb-4 sm:mb-6 opacity-90 drop-shadow'>
-                      {banner.subtitle}
-                    </p>
-                    <Button
-                      asChild
-                      size='lg'
-                      className='bg-white text-black hover:bg-gray-100 font-semibold px-6 sm:px-8'
-                    >
-                      <Link href={banner.cta.href}>{banner.cta.label}</Link>
-                    </Button>
-                  </div>
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className='left-4 hidden md:flex bg-white/80 hover:bg-white' />
-          <CarouselNext className='right-4 hidden md:flex bg-white/80 hover:bg-white' />
-        </Carousel>
+        <HeroCarousel />
       </section>
 
       {/* Featured Brands */}
