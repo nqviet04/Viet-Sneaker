@@ -221,7 +221,7 @@ export function Header() {
 
             {/* Sale */}
             <Link
-              href='/products?sort=price_asc&maxPrice=50'
+              href='/products?hasDiscount=true'
               className='px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 rounded-md hover:bg-red-50 transition-colors'
             >
               Khuyến mãi
@@ -231,8 +231,8 @@ export function Header() {
           </div>
 
           {/* Search + Right side */}
-          <div className='hidden lg:flex flex-1 max-w-2xl justify-center px-4'>
-            <form onSubmit={handleSearch} className='relative flex items-center gap-2'>
+          <div className='hidden lg:flex flex-1 max-w-3xl justify-center px-4'>
+            <form onSubmit={handleSearch} className='relative flex items-center gap-2 w-full'>
               <div className='relative flex-1'>
                 <Input
                   type='search'

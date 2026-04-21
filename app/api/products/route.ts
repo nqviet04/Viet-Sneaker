@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     const minPrice = parseFloat(searchParams.get('minPrice') || '0')
     const maxPrice = parseFloat(searchParams.get('maxPrice') || '10000000') // VND max
     const sort = searchParams.get('sort') || 'created_desc'
+    const hasDiscount = searchParams.get('hasDiscount') === 'true'
 
     // ==========================================
     // MULTI-SELECT FILTERS FOR SHOE STORE
@@ -34,6 +35,11 @@ export async function GET(request: NextRequest) {
     // Build where clause for filtering
     const where: any = {
       price: { gte: minPrice, lte: maxPrice },
+    }
+
+    // Filter by products with discount (has originalPrice)
+    if (hasDiscount) {
+      where.originalPrice = { not: null }
     }
 
     // Search by name or description

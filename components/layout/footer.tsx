@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import { Facebook, Instagram, Twitter, Youtube, MapPin, Phone, Clock } from 'lucide-react'
+import { Facebook, Instagram, MapPin, Phone, Clock } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
 const BRANDS = [
@@ -89,7 +89,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href='/products?sort=price_asc&maxPrice=50'
+                  href='/products?hasDiscount=true'
                   className='text-sm text-red-400 hover:text-red-300 transition-colors'
                 >
                   Khuyến mãi
@@ -214,22 +214,15 @@ export function Footer() {
                   <Instagram className='h-4 w-4' />
                 </a>
                 <a
-                  href='https://twitter.com'
+                  href='https://www.tiktok.com/@qouc_dzviet'
                   target='_blank'
                   rel='noopener noreferrer'
                   className='w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors'
-                  aria-label='Twitter'
+                  aria-label='TikTok'
                 >
-                  <Twitter className='h-4 w-4' />
-                </a>
-                <a
-                  href='https://youtube.com'
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  className='w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors'
-                  aria-label='YouTube'
-                >
-                  <Youtube className='h-4 w-4' />
+                  <svg className='h-4 w-4' viewBox='0 0 24 24' fill='currentColor'>
+                    <path d='M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V8.69a8.27 8.27 0 004.76 1.52V6.79a4.85 4.85 0 01-1-.1z' />
+                  </svg>
                 </a>
               </div>
             </div>

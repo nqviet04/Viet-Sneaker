@@ -14,7 +14,7 @@ import {
 import { Shield, Truck, RotateCcw, CreditCard } from 'lucide-react'
 
 async function getHomeData() {
-  const [newArrivals, bestSellers] = await Promise.all([
+  const [newArrivals, bestSellers, discountedProducts] = await Promise.all([
     prisma.product.findMany({
       where: { stock: { gt: 0 } },
       take: 8,
@@ -27,9 +27,15 @@ async function getHomeData() {
       orderBy: { createdAt: 'asc' },
       include: { _count: { select: { reviews: true } } },
     }),
+    prisma.product.findMany({
+      where: { stock: { gt: 0 }, originalPrice: { not: null } },
+      take: 8,
+      orderBy: { createdAt: 'desc' },
+      include: { _count: { select: { reviews: true } } },
+    }),
   ])
 
-  return { newArrivals, bestSellers }
+  return { newArrivals, bestSellers, discountedProducts }
 }
 
 const PROMO_BANNERS = [
@@ -54,7 +60,7 @@ const PROMO_BANNERS = [
 ]
 
 export default async function HomePage() {
-  const { newArrivals, bestSellers } = await getHomeData()
+  const { newArrivals, bestSellers, discountedProducts } = await getHomeData()
 
   return (
     <div className='min-h-screen'>
@@ -117,6 +123,16 @@ export default async function HomePage() {
           subtitle='Những lựa chọn phổ biến nhất của khách hàng'
           products={bestSellers}
           viewAllHref='/products'
+        />
+      )}
+
+      {/* Discounted Products */}
+      {discountedProducts.length > 0 && (
+        <ProductSection
+          title='Khuyến Mãi Nổi Bật'
+          subtitle='Những lựa chọn ưu đãi hấp dẫn nhất dành cho bạn'
+          products={discountedProducts}
+          viewAllHref='/products?hasDiscount=true'
         />
       )}
 

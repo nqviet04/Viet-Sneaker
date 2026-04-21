@@ -94,6 +94,15 @@ export default function ProductsPage() {
     })
   }
 
+  const hasDiscount = searchParams.get('hasDiscount')
+  if (hasDiscount === 'true') {
+    activeFilters.push({
+      key: 'hasDiscount',
+      label: 'Khuyến mãi',
+      values: ['Đang giảm giá'],
+    })
+  }
+
   const removeFilter = (key: string, value?: string) => {
     const params = new URLSearchParams(searchParams.toString())
     if (value && key !== 'price') {
@@ -126,7 +135,7 @@ export default function ProductsPage() {
       {/* Page Header */}
       <div className='mb-6'>
         <h1 className='text-2xl font-bold'>
-          {vsState === 'results' && vsResults.length > 0 ? 'Kết Quả Tìm Kiếm Hình Ảnh' : 'Tất Cả Sản Phẩm'}
+          {vsState === 'results' && vsResults.length > 0 ? 'Kết Quả Tìm Kiếm Hình Ảnh' : hasDiscount === 'true' ? 'Khuyến Mãi' : 'Tất Cả Sản Phẩm'}
         </h1>
         {!loading && (
           <p className='text-sm text-muted-foreground mt-1'>
