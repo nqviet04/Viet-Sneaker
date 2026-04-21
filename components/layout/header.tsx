@@ -97,7 +97,7 @@ export function Header() {
   const clearSearch = () => {
     setSearchQuery('')
     reset()
-    router.push('/products')
+    router.refresh()
   }
 
   const handleFileSelect = useCallback(
