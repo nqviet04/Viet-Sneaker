@@ -19,13 +19,18 @@
  * - Dry run mode: chỉ hiển thị sản phẩm cần encode, không lưu
  */
 
-import { PrismaClient, Prisma, Brand, Gender, ShoeType } from "@prisma/client";
+import { PrismaClient, Brand, Gender, ShoeType } from "@prisma/client";
 import * as fs from "fs";
 import * as path from "path";
 import * as https from "https";
 import * as http from "http";
+import { fileURLToPath } from "url";
 
 const prisma = new PrismaClient();
+
+// Resolve project root (scripts/ → project root)
+const __filename = fileURLToPath(import.meta.url);
+const PROJECT_ROOT = path.resolve(__filename, "..", "..");
 
 const ML_SERVICE_URL = process.env.CLIP_API_URL || "http://localhost:8080";
 const BATCH_SIZE = 10;
@@ -66,6 +71,14 @@ function toStandardColor(color: string): string | null {
 // ============================================================
 
 async function downloadImage(url: string): Promise<Buffer> {
+  if (url.startsWith("/")) {
+    const localPath = path.join(PROJECT_ROOT, "public", url);
+    if (!fs.existsSync(localPath)) {
+      throw new Error(`Local file not found: ${localPath}`);
+    }
+    return fs.readFileSync(localPath);
+  }
+
   return new Promise((resolve, reject) => {
     const protocol = url.startsWith("https") ? https : http;
     const request = protocol.get(url, { timeout: 15000 }, (response) => {
@@ -217,14 +230,18 @@ async function main() {
     const productMap = new Map<string, (typeof products)[0]>();
 
     for (const product of products) {
-      const imageUrl = product.images[0];
-      if (!imageUrl) {
-        console.warn(`  [${product.id}] No images, skipping`);
+      // Accept both HTTP URLs and local paths (e.g. /images/products/...)
+      const validImages = product.images.filter(
+        (url) => url.startsWith("http://") || url.startsWith("https://") || url.startsWith("/")
+      );
+      if (!validImages.length) {
+        console.warn(`  [${product.id}] No valid image URLs (empty images), skipping`);
         skippedCount++;
         processed++;
         continue;
       }
 
+      const imageUrl = validImages[0];
       try {
         const imageBuffer = await downloadImage(imageUrl);
         const base64 = imageBuffer.toString("base64");
@@ -296,14 +313,20 @@ async function main() {
             // Build embedding string for PostgreSQL vector type
             const embeddingStr = `[${result.embedding.join(",")}]`;
 
-            // Use $queryRaw because embedding is an Unsupported (pgvector) field
-            await prisma.$executeRaw`
+            // Build the text array string for dominantColors using PostgreSQL ARRAY syntax
+            // Escape single quotes in color names to prevent SQL injection
+            const safeColors = normalizedColors.map((c) => c.replace(/'/g, "''"));
+            // Use single quotes for PostgreSQL string literals
+            const colorsArrayStr = safeColors.map((c) => `'${c}'`).join(", ");
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await (prisma as any).$executeRawUnsafe(`
               UPDATE "Product"
               SET
-                embedding = ${embeddingStr}::vector,
-                "dominantColors" = ${Prisma.join(normalizedColors.map((c) => c))}
-              WHERE id = ${result.id}
-            `;
+                embedding = '${embeddingStr}'::vector,
+                "dominantColors" = ARRAY[${colorsArrayStr}]::text[]
+              WHERE id = '${result.id}'
+            `);
           }
         }
 
@@ -379,9 +402,8 @@ async function generateForSingleProduct(productId: string, dryRun: boolean) {
   console.log(`Mode: ${dryRun ? "DRY RUN (no changes)" : "LIVE (will update database)"}`);
   console.log();
 
-  // Use $queryRaw because embedding is an Unsupported field (pgvector)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [product]: any[] = await prisma.$queryRaw`
+  const [product]: any[] = await (prisma as any).$queryRaw`
     SELECT id, name, "images"::text, brand, colors, embedding
     FROM "Product"
     WHERE id = ${productId}
@@ -409,7 +431,14 @@ async function generateForSingleProduct(productId: string, dryRun: boolean) {
     process.exit(1);
   }
 
-  const imageUrl = images[0];
+  // Accept both HTTP URLs and local paths (e.g. /images/products/...)
+  const validImages = images.filter((url) => url.startsWith("http://") || url.startsWith("https://") || url.startsWith("/"));
+  if (validImages.length === 0) {
+    console.error(`Product has no valid image URLs. Cannot generate embedding.`);
+    process.exit(1);
+  }
+
+  const imageUrl = validImages[0];
   console.log(`Image URL: ${imageUrl}`);
   console.log();
 
@@ -446,13 +475,17 @@ async function generateForSingleProduct(productId: string, dryRun: boolean) {
         .map((c: any) => toStandardColor(c.name))
         .filter((c: string | null): c is string => c !== null);
 
-      await prisma.$executeRaw`
+      const safeColors = normalizedColors.map((c) => c.replace(/'/g, "''"));
+      const colorsArrayStr = safeColors.map((c) => `'${c}'`).join(", ");
+      const embeddingStr = `[${data.embedding.join(",")}]`;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (prisma as any).$executeRawUnsafe(`
         UPDATE "Product"
         SET
-          embedding = ${`[${data.embedding.join(",")}]`}::vector,
-          "dominantColors" = ${Prisma.join(normalizedColors)}
-        WHERE id = ${productId}
-      `;
+          embedding = '${embeddingStr}'::vector,
+          "dominantColors" = ARRAY[${colorsArrayStr}]::text[]
+        WHERE id = '${productId}'
+      `);
 
       console.log();
       console.log("SUCCESS - Embedding updated!");

@@ -66,12 +66,14 @@ export function ProductCard({
       : 0
 
   const hasSizes = product.sizes && product.sizes.length > 0
+  const hasColors = product.colors && product.colors.length > 0
   const defaultColor = product.colors?.[0] || 'default'
   const isOutOfStock = (product.stock ?? 0) === 0
 
   const [internalColor, setInternalColor] = React.useState('')
   const [selectedSize, setSelectedSize] = React.useState('')
   const [sizeError, setSizeError] = React.useState(false)
+  const [colorError, setColorError] = React.useState(false)
   const activeColor = externalColor !== undefined ? externalColor : internalColor
 
   const getDisplayImage = (): string => {
@@ -105,6 +107,7 @@ export function ProductCard({
       externalOnColorChange(color)
     }
     setInternalColor(color)
+    setColorError(false)
   }
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -113,8 +116,19 @@ export function ProductCard({
 
     if (isOutOfStock) {
       toast({
-        title: 'Out of stock',
-        description: 'This product is currently unavailable.',
+        title: 'Hết hàng',
+        description: 'Sản phẩm này hiện không có sẵn.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    const colorMissing = hasColors && !activeColor
+    if (colorMissing) {
+      setColorError(true)
+      toast({
+        title: 'Vui lòng chọn màu sắc',
+        description: 'Bạn cần chọn màu sắc trước khi thêm vào giỏ hàng.',
         variant: 'destructive',
       })
       return
@@ -143,24 +157,27 @@ export function ProductCard({
     })
 
     const displaySize = (selectedSize || product.sizes?.[0]) ?? 'default'
+    const colorText = activeColor ? `, Màu ${activeColor}` : ''
 
     toast({
-      title: 'Added to cart',
-      description: product.name + ' (Size ' + displaySize + ')',
+      title: 'Đã thêm vào giỏ hàng',
+      description: `${product.name} (Size ${displaySize}${colorText})`,
       action: (
-        <ToastAction altText='View cart' asChild>
-          <Link href='/cart'>View Cart</Link>
+        <ToastAction altText='Xem giỏ hàng' asChild>
+          <Link href='/cart'>Xem giỏ hàng</Link>
         </ToastAction>
       ),
     })
 
     setSelectedSize('')
     setSizeError(false)
+    setColorError(false)
   }
 
   return (
-    <Card className={cn('overflow-hidden group flex flex-col', className)}>
-      <div className='flex flex-col flex-1'>
+    <Card className={cn('overflow-hidden group flex flex-col h-full', className)}>
+      {/* Image + Color swatches (fixed aspect, not stretchy) */}
+      <div className='flex flex-col'>
         <Link href={'/products/' + product.id} className='block'>
           <div className='aspect-square overflow-hidden relative'>
             {displayImage ? (
@@ -217,50 +234,53 @@ export function ProductCard({
         )}
       </div>
 
-      <Link href={'/products/' + product.id} className='block flex-1'>
-        <CardHeader className={cn('p-3', compact ? 'p-2' : 'p-4')}>
-          <CardTitle className='line-clamp-2 text-sm font-semibold'>
-            {product.name}
-          </CardTitle>
-          {!compact && (
-            <CardDescription className='line-clamp-2 text-xs'>
-              {product.description}
-            </CardDescription>
-          )}
-        </CardHeader>
-
-        <CardContent className={cn('p-3 pt-0 flex-1', compact ? 'p-2 pt-0' : 'p-4 pt-0')}>
-          <div className='flex items-center gap-1 mb-2'>
-            <div className='flex'>
-              {[1, 2, 3, 4, 5].map((star) => (
-                <Star
-                  key={star}
-                  className={cn(
-                    'w-3 h-3',
-                    star <= Math.round(averageRating)
-                      ? 'fill-yellow-400 text-yellow-400'
-                      : 'fill-gray-200 text-gray-200'
-                  )}
-                />
-              ))}
-            </div>
-            <span className='text-xs text-gray-500'>({reviewCount})</span>
-          </div>
-
-          <div className='flex items-baseline gap-2'>
-            <span className='text-base font-bold'>
-              {formatPrice(product.price)}
-            </span>
-            {product.originalPrice && product.originalPrice > product.price && (
-              <span className='text-xs text-muted-foreground line-through'>
-                {formatPrice(product.originalPrice)}
-              </span>
-            )}
-          </div>
-        </CardContent>
+      {/* Info */}
+      <Link href={'/products/' + product.id} className='block px-3 sm:px-4 pt-2'>
+        <CardTitle className='line-clamp-2 text-sm font-semibold'>
+          {product.name}
+        </CardTitle>
+        {!compact && (
+          <CardDescription className='line-clamp-2 text-xs mt-1'>
+            {product.description}
+          </CardDescription>
+        )}
       </Link>
 
-      <CardFooter className={cn('p-3 pt-0 flex-col gap-2', compact ? 'p-2 pt-0' : 'p-4 pt-0')}>
+      {/* Rating + Price */}
+      <div className={cn('px-3 sm:px-4', compact ? 'pt-1' : 'pt-2')}>
+        <div className='flex items-center gap-1 mb-1'>
+          <div className='flex'>
+            {[1, 2, 3, 4, 5].map((star) => (
+              <Star
+                key={star}
+                className={cn(
+                  'w-3 h-3',
+                  star <= Math.round(averageRating)
+                    ? 'fill-yellow-400 text-yellow-400'
+                    : 'fill-gray-200 text-gray-200'
+                )}
+              />
+            ))}
+          </div>
+          <span className='text-xs text-gray-500'>({reviewCount})</span>
+        </div>
+        <div className='flex items-baseline gap-2'>
+          <span className='text-base font-bold'>
+            {formatPrice(product.price)}
+          </span>
+          {product.originalPrice && product.originalPrice > product.price && (
+            <span className='text-xs text-muted-foreground line-through'>
+              {formatPrice(product.originalPrice)}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Spacer so footer aligns across cards */}
+      <div className='flex-1' />
+
+      {/* Footer: sizes + add to cart */}
+      <CardFooter className={cn('p-3 sm:p-4 pt-2 flex-col gap-2')}>
         {hasSizes && (
           <div className='w-full overflow-hidden'>
             <div className='flex flex-wrap gap-1'>
@@ -293,15 +313,18 @@ export function ProductCard({
             {sizeError && !selectedSize && (
               <p className='text-xs text-red-500 mt-1'>Vui lòng chọn size</p>
             )}
+            {colorError && !activeColor && hasColors && (
+              <p className='text-xs text-red-500 mt-1'>Vui lòng chọn màu sắc</p>
+            )}
           </div>
         )}
         <Button
-          className='w-full mt-2'
+          className='w-full mt-auto'
           size={compact ? 'sm' : 'default'}
           onClick={handleAddToCart}
           disabled={isOutOfStock}
         >
-          {isOutOfStock ? 'Out of Stock' : 'Thêm vào giỏ hàng'}
+          {isOutOfStock ? 'Hết hàng' : 'Thêm vào giỏ hàng'}
         </Button>
       </CardFooter>
     </Card>
