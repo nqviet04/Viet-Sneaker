@@ -116,13 +116,13 @@ export default async function BrandsPage() {
                 />
               </div>
 
-              <div className='relative p-8 min-h-[200px] flex flex-col justify-between'>
+              <div className='relative p-4 sm:p-6 md:p-8 min-h-[160px] sm:min-h-[200px] flex flex-col justify-between'>
                 {/* Top: Brand name and tagline */}
                 <div>
-                  <p className='text-xs font-medium opacity-70 uppercase tracking-widest mb-1'>
+                  <p className='text-[10px] sm:text-xs font-medium opacity-70 uppercase tracking-widest mb-1'>
                     {meta.tagline}
                   </p>
-                  <h2 className='text-4xl font-black tracking-widest uppercase'>
+                  <h2 className='text-2xl sm:text-3xl md:text-4xl font-black tracking-wide sm:tracking-widest uppercase'>
                     {meta.label}
                   </h2>
                 </div>

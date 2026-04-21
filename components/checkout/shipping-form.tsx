@@ -389,7 +389,7 @@ export function ShippingForm() {
 
         <div className='space-y-3'>
           <FormLabel>Phương thức thanh toán</FormLabel>
-          <div className='grid grid-cols-2 gap-3'>
+          <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
             <FormField
               control={form.control}
               name='paymentMethod'
@@ -400,14 +400,14 @@ export function ShippingForm() {
                       type='button'
                       onClick={() => field.onChange('cod')}
                       className={cn(
-                        'w-full h-20 flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 text-sm font-medium transition-colors',
+                        'w-full h-16 sm:h-20 flex flex-col items-center justify-center gap-1 rounded-lg border-2 text-sm font-medium transition-colors',
                         field.value === 'cod'
                           ? 'border-primary bg-primary/5 text-primary'
                           : 'border-border hover:border-primary/50 hover:bg-accent'
                       )}
                     >
                       <Banknote className='h-5 w-5' />
-                      Thanh toán khi nhận hàng
+                      <span className='text-center leading-tight'>COD</span>
                     </button>
                   </FormControl>
                 </FormItem>
@@ -423,14 +423,14 @@ export function ShippingForm() {
                       type='button'
                       onClick={() => field.onChange('bank_transfer')}
                       className={cn(
-                        'w-full h-20 flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 text-sm font-medium transition-colors',
+                        'w-full h-16 sm:h-20 flex flex-col items-center justify-center gap-1 rounded-lg border-2 text-sm font-medium transition-colors',
                         field.value === 'bank_transfer'
                           ? 'border-primary bg-primary/5 text-primary'
                           : 'border-border hover:border-primary/50 hover:bg-accent'
                       )}
                     >
                       <QrCode className='h-5 w-5' />
-                      Chuyển khoản ngân hàng
+                      <span className='text-center leading-tight'>Chuyển khoản</span>
                     </button>
                   </FormControl>
                 </FormItem>

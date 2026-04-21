@@ -93,7 +93,7 @@ export function ColorSelector({
               className={`
                 rounded-full border-2 transition-all duration-150
                 flex items-center justify-center
-                ${compact ? 'w-5 h-5' : 'w-10 h-10'}
+                ${compact ? 'w-5 h-5' : 'w-9 h-9 sm:w-10 sm:h-10 min-w-[44px] min-h-[44px]'}
                 ${config.border || 'border-transparent'}
                 ${isSelected
                   ? compact

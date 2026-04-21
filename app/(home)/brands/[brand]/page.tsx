@@ -76,12 +76,12 @@ export default async function BrandPage(props: BrandPageProps) {
       </nav>
 
       {/* Brand Hero */}
-      <div className={`rounded-2xl ${bgColor} text-white p-8 mb-8`}>
+      <div className={`rounded-2xl ${bgColor} text-white p-4 sm:p-6 md:p-8 mb-6 sm:mb-8`}>
         <div className='max-w-2xl'>
-          <h1 className='text-4xl font-black tracking-widest uppercase mb-2'>
+          <h1 className='text-2xl sm:text-3xl md:text-4xl font-black tracking-wide sm:tracking-widest uppercase mb-2'>
             {label}
           </h1>
-          <p className='text-white/80 text-lg'>
+          <p className='text-white/80 text-base sm:text-lg'>
             Explore our curated collection of {label} shoes. {products.length}{' '}
             products available.
           </p>

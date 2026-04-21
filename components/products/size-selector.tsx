@@ -62,7 +62,7 @@ export function SizeSelector({
                       type='button'
                       disabled
                       className={`
-                        relative w-12 h-10 rounded-md border text-sm font-medium
+                        relative w-10 sm:w-12 h-9 sm:h-10 rounded-md border text-xs sm:text-sm font-medium
                         border-gray-200 text-gray-300 cursor-not-allowed
                         line-through opacity-50
                       `}
@@ -87,7 +87,7 @@ export function SizeSelector({
                     type='button'
                     onClick={() => onSizeChange(size)}
                     className={`
-                      relative w-12 h-10 rounded-md border text-sm font-medium
+                      relative w-10 sm:w-12 h-9 sm:h-10 rounded-md border text-xs sm:text-sm font-medium
                       transition-all duration-150
                       ${isSelected
                         ? 'border-black bg-black text-white shadow-md scale-105'

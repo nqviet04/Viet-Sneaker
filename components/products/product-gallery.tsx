@@ -38,7 +38,7 @@ export function ProductGallery({ images }: ProductGalleryProps) {
 
       {/* Thumbnails */}
       {validImages.length > 1 && (
-        <div className='grid grid-cols-4 gap-4'>
+        <div className='grid grid-cols-4 sm:grid-cols-5 gap-2 sm:gap-3'>
           {validImages.map((image, index) => (
             <button
               key={image}
@@ -53,7 +53,7 @@ export function ProductGallery({ images }: ProductGalleryProps) {
                 alt={`Product thumbnail ${index + 1}`}
                 fill
                 className='object-cover'
-                sizes='(max-width: 768px) 25vw, 15vw'
+                sizes='(max-width: 640px) 25vw, (max-width: 768px) 20vw, 15vw'
                 quality={80}
               />
             </button>

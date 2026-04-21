@@ -11,6 +11,10 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Brand, Gender, ShoeType } from '@prisma/client'
 
+interface ProductSidebarProps {
+  onApply?: () => void
+}
+
 const GENDER_LABELS: Record<Gender, string> = {
   MEN: 'Nam',
   WOMEN: 'Nữ',
@@ -56,7 +60,7 @@ const COLOR_SWATCHES: Record<string, string> = {
   beige: '#d6d3d1',
 }
 
-export function ProductSidebar() {
+export function ProductSidebar({ onApply }: ProductSidebarProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -133,7 +137,8 @@ export function ProductSidebar() {
     params.set('maxPrice', priceRange[1].toString())
 
     router.push(`/products?${params.toString()}`)
-  }, [router, selectedBrands, selectedSizes, selectedColors, selectedGender, selectedShoeType, selectedInStock, selectedSort, priceRange])
+    if (onApply) onApply()
+  }, [router, selectedBrands, selectedSizes, selectedColors, selectedGender, selectedShoeType, selectedInStock, selectedSort, priceRange, onApply])
 
   const handleReset = () => {
     setSelectedBrands([])

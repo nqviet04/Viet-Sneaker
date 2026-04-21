@@ -12,8 +12,8 @@ export default async function CheckoutPage() {
   }
 
   return (
-    <div className='container max-w-7xl mx-auto py-20 px-4 sm:px-6 lg:px-8'>
-      <h1 className='text-3xl font-bold mb-10'>Thanh Toán</h1>
+    <div className='container max-w-7xl mx-auto py-12 sm:py-20 px-4 sm:px-6 lg:px-8'>
+      <h1 className='text-2xl sm:text-3xl font-bold mb-8 sm:mb-10'>Thanh Toán</h1>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
         <div>
           <Card>

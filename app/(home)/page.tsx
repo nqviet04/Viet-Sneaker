@@ -70,7 +70,7 @@ export default async function HomePage() {
           <CarouselContent>
             {PROMO_BANNERS.map((banner, index) => (
               <CarouselItem key={index}>
-                <div className='relative aspect-[21/9] w-full overflow-hidden'>
+                <div className='relative aspect-[4/3] sm:aspect-video md:aspect-[21/9] w-full overflow-hidden'>
                   <Image
                     src={banner.image}
                     alt={banner.title}
@@ -82,16 +82,16 @@ export default async function HomePage() {
                   />
                   <div className='absolute inset-0 bg-black/30' />
                   <div className='absolute inset-0 flex flex-col items-center justify-center text-center text-white px-4'>
-                    <h1 className='text-3xl sm:text-4xl md:text-5xl font-bold mb-2 drop-shadow-lg'>
+                    <h1 className='text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-3 drop-shadow-lg'>
                       {banner.title}
                     </h1>
-                    <p className='text-lg sm:text-xl mb-6 opacity-90 drop-shadow'>
+                    <p className='text-base sm:text-lg md:text-xl mb-4 sm:mb-6 opacity-90 drop-shadow'>
                       {banner.subtitle}
                     </p>
                     <Button
                       asChild
                       size='lg'
-                      className='bg-white text-black hover:bg-gray-100 font-semibold px-8'
+                      className='bg-white text-black hover:bg-gray-100 font-semibold px-6 sm:px-8'
                     >
                       <Link href={banner.cta.href}>{banner.cta.label}</Link>
                     </Button>
@@ -139,7 +139,7 @@ export default async function HomePage() {
       {/* Features / Trust Badges */}
       <section className='bg-gray-50 py-12 mt-8'>
         <div className='container mx-auto px-4 sm:px-6 lg:px-8'>
-          <div className='grid grid-cols-2 md:grid-cols-4 gap-8'>
+          <div className='grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8'>
             {[
               { icon: Truck, label: 'Miễn Phí Vận Chuyển', desc: 'Cho đơn hàng từ ₫2.500.000' },
               { icon: Shield, label: 'Thanh Toán An Toàn', desc: '100% bảo mật thanh toán' },

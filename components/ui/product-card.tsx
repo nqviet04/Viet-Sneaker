@@ -262,7 +262,7 @@ export function ProductCard({
 
       <CardFooter className={cn('p-3 pt-0 flex-col gap-2', compact ? 'p-2 pt-0' : 'p-4 pt-0')}>
         {hasSizes && (
-          <div className='w-full'>
+          <div className='w-full overflow-hidden'>
             <div className='flex flex-wrap gap-1'>
               {ALL_SIZES.map((size) => {
                 if (!product.sizes?.includes(size)) return null
@@ -278,7 +278,7 @@ export function ProductCard({
                       setSizeError(false)
                     }}
                     className={cn(
-                      'h-8 min-w-[2.5rem] px-1.5 rounded border text-xs font-medium transition-all duration-150',
+                      'h-7 sm:h-8 min-w-[2rem] sm:min-w-[2.5rem] px-1 rounded border text-[10px] sm:text-xs font-medium transition-all duration-150',
                       isSelected
                         ? 'border-black bg-black text-white'
                         : 'border-gray-200 bg-white text-gray-700 hover:border-gray-400',

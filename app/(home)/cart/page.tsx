@@ -55,20 +55,20 @@ export default function CartPage() {
   }
 
   return (
-    <div className='container mx-auto px-4 py-8'>
-      <div className='flex items-center justify-between mb-6'>
+    <div className='container mx-auto px-4 py-6 sm:py-8'>
+      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6'>
         <div>
-          <h1 className='text-2xl font-bold'>Giỏ Hàng</h1>
+          <h1 className='text-xl sm:text-2xl font-bold'>Giỏ Hàng</h1>
           <p className='text-sm text-muted-foreground'>
-            {cart.itemCount()} {cart.itemCount() === 1 ? 'sản phẩm' : 'sản phẩm'}
+            {cart.itemCount()} sản phẩm
           </p>
         </div>
-        <Button variant='outline' size='sm' asChild>
+        <Button variant='outline' size='sm' asChild className='self-start sm:self-auto'>
           <Link href='/products'>Tiếp tục mua sắm</Link>
         </Button>
       </div>
 
-      <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
+      <div className='grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8'>
         {/* Cart Items */}
         <div className='lg:col-span-2'>
           <Card>
@@ -76,12 +76,12 @@ export default function CartPage() {
               {cart.items.map((item) => (
                 <div
                   key={item.id}
-                  className='flex items-start gap-4 p-4 border-b last:border-0'
+                  className='flex flex-col xs:flex-row items-start gap-3 sm:gap-4 p-3 sm:p-4 border-b last:border-0'
                 >
                   {/* Image */}
                   <Link
                     href={`/products/${item.productId}`}
-                    className='relative w-24 h-24 flex-shrink-0 overflow-hidden rounded-lg'
+                    className='relative w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 overflow-hidden rounded-lg'
                   >
                     {item.image ? (
                       <Image
@@ -98,16 +98,16 @@ export default function CartPage() {
                   </Link>
 
                   {/* Info */}
-                  <div className='flex-1 min-w-0'>
+                  <div className='flex-1 min-w-0 w-full'>
                     <Link
                       href={`/products/${item.productId}`}
-                      className='font-medium hover:underline line-clamp-2'
+                      className='font-medium hover:underline line-clamp-2 text-sm sm:text-base'
                     >
                       {item.name}
                     </Link>
 
                     {/* Size & Color */}
-                    <div className='flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-sm'>
+                    <div className='flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs sm:text-sm'>
                       <span className='text-muted-foreground'>
                         <span className='font-medium'>Size:</span>{' '}
                         <button
@@ -127,11 +127,11 @@ export default function CartPage() {
                     </div>
 
                     <div className='mt-2'>
-                      <span className='font-semibold text-lg'>
+                      <span className='font-semibold text-base sm:text-lg'>
                         {formatPrice(item.price)}
                       </span>
                       {item.quantity > 1 && (
-                        <span className='text-sm text-muted-foreground ml-1'>
+                        <span className='text-xs sm:text-sm text-muted-foreground ml-1'>
                           (Tổng: {formatPrice(item.price * item.quantity)})
                         </span>
                       )}
@@ -139,8 +139,8 @@ export default function CartPage() {
                   </div>
 
                   {/* Quantity & Actions */}
-                  <div className='flex flex-col items-end gap-2'>
-                    <div className='flex items-center gap-2'>
+                  <div className='flex flex-row xs:flex-col items-center xs:items-end gap-2 w-full xs:w-auto'>
+                    <div className='flex items-center gap-1 sm:gap-2'>
                       <Button
                         variant='outline'
                         size='icon'
@@ -171,7 +171,7 @@ export default function CartPage() {
                             parseInt(e.target.value) || 1
                           )
                         }
-                        className='w-14 h-8 text-center'
+                        className='w-12 sm:w-14 h-8 text-center text-sm'
                       />
                       <Button
                         variant='outline'
@@ -194,7 +194,7 @@ export default function CartPage() {
                     <Button
                       variant='ghost'
                       size='sm'
-                      className='text-red-500 hover:text-red-600 hover:bg-red-50 h-8'
+                      className='text-red-500 hover:text-red-600 hover:bg-red-50 h-8 text-xs sm:text-sm'
                       onClick={() =>
                         cart.removeItem(
                           item.productId,
@@ -203,7 +203,7 @@ export default function CartPage() {
                         )
                       }
                     >
-                      <Trash2 className='h-4 w-4 mr-1' />
+                      <Trash2 className='h-3 w-3 sm:h-4 sm:w-4 mr-1' />
                       Xóa
                     </Button>
                   </div>
@@ -214,8 +214,8 @@ export default function CartPage() {
         </div>
 
         {/* Order Summary Sidebar */}
-        <div className='lg:col-span-1'>
-          <Card className='sticky top-4'>
+        <div className='hidden lg:block lg:col-span-1'>
+          <Card className='sticky top-20'>
             <CardHeader>
               <CardTitle>Tóm Tắt Đơn Hàng</CardTitle>
             </CardHeader>
@@ -232,7 +232,7 @@ export default function CartPage() {
                 <span className='text-muted-foreground'>Thuế</span>
                 <span className='text-muted-foreground'>Tính khi thanh toán</span>
               </div>
-              <div className='border-t pt-3 flex justify-between font-semibold text-lg'>
+              <div className='border-t pt-3 flex justify-between font-semibold text-base sm:text-lg'>
                 <span>Tổng cộng (ước tính)</span>
                 <span>{formatPrice(cart.total())}</span>
               </div>
@@ -248,6 +248,23 @@ export default function CartPage() {
           </Card>
         </div>
       </div>
+
+      {/* Mobile Sticky Checkout Bar */}
+      <div className='lg:hidden fixed bottom-0 left-0 right-0 bg-background border-t shadow-lg z-50'>
+        <div className='container mx-auto px-4 py-3'>
+          <div className='flex items-center justify-between gap-4'>
+            <div>
+              <p className='text-xs text-muted-foreground'>Tổng cộng</p>
+              <p className='font-bold text-lg'>{formatPrice(cart.total())}</p>
+            </div>
+            <Button asChild size='lg' className='px-6'>
+              <Link href='/checkout'>Thanh Toán</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+      {/* Bottom padding to prevent content from being hidden behind the sticky bar */}
+      <div className='h-24 lg:hidden' />
 
       {/* Change Size Dialog */}
       <ChangeSizeDialog

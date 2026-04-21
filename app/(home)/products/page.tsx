@@ -7,10 +7,17 @@ import { ProductSidebar } from '@/components/products/product-sidebar'
 import { Product } from '@prisma/client'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { X, Camera, Sparkles, AlertCircle, RefreshCw } from 'lucide-react'
+import { X, Camera, Sparkles, AlertCircle, RefreshCw, SlidersHorizontal } from 'lucide-react'
 import { useVisualSearchStore } from '@/store/use-visual-search'
 import { Skeleton } from '@/components/ui/skeleton'
 import Image from 'next/image'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
 
 const SIMILARITY_LABELS: Record<string, string> = {
   NIKE: 'Nike',
@@ -28,6 +35,7 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
 
   const { state: vsState, results: vsResults, mlInfo: vsMlInfo, preview: vsPreview, errorMessage: vsError, reset, setState: setVsState, setResults, setMlInfo, setError } =
     useVisualSearchStore()
@@ -148,7 +156,7 @@ export default function ProductsPage() {
 
       {/* Visual Search Banner */}
       {vsState === 'results' && vsResults.length > 0 && (
-        <div className='mb-6 flex items-center gap-4 p-4 bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl border'>
+        <div className='mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl border'>
           {vsPreview ? (
             <div className='relative w-16 h-16 shrink-0 rounded-lg overflow-hidden border bg-white'>
               <Image src={vsPreview} alt='Search image' fill className='object-contain p-1' unoptimized />
@@ -196,14 +204,14 @@ export default function ProductsPage() {
             className='gap-1.5 shrink-0'
           >
             <X className='h-4 w-4' />
-            Xoá tìm kiếm
+            <span className='hidden xs:inline'>Xoá tìm kiếm</span>
           </Button>
         </div>
       )}
 
       {/* Visual Search Analyzing State */}
       {vsState === 'analyzing' && (
-        <div className='mb-6 flex flex-col items-center justify-center gap-6 p-10 bg-primary/5 rounded-xl border border-primary/20 text-center'>
+        <div className='mb-6 flex flex-col items-center justify-center gap-4 sm:gap-6 p-6 sm:p-10 bg-primary/5 rounded-xl border border-primary/20 text-center'>
           <div className='w-20 h-20 shrink-0 rounded-2xl overflow-hidden border-2 border-primary/30 bg-gray-100 relative shadow-sm'>
             {vsPreview ? (
               <Image src={vsPreview} alt='Search image' fill className='object-contain p-1' unoptimized />
@@ -214,20 +222,20 @@ export default function ProductsPage() {
             )}
           </div>
           <div className='space-y-2'>
-            <div className='flex items-center justify-center gap-2'>
+            <div className='flex flex-wrap justify-center items-center gap-2'>
               <div className='relative flex gap-1'>
                 <span className='w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:0ms]' />
                 <span className='w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:150ms]' />
                 <span className='w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:300ms]' />
               </div>
-              <span className='font-bold text-base text-foreground'>Hệ thống đang kiếm sản phẩm phù hợp</span>
+              <span className='font-bold text-sm sm:text-base text-foreground'>Hệ thống đang tìm sản phẩm phù hợp</span>
               <div className='relative flex gap-1'>
                 <span className='w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:300ms]' />
                 <span className='w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:150ms]' />
                 <span className='w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:0ms]' />
               </div>
             </div>
-            <p className='text-sm text-muted-foreground'>
+            <p className='text-xs sm:text-sm text-muted-foreground'>
               Vui lòng đợi trong giây lát nhé
             </p>
           </div>
@@ -236,7 +244,7 @@ export default function ProductsPage() {
 
       {/* Visual Search Error State */}
       {vsState === 'error' && (
-        <div className='mb-6 flex items-center gap-4 p-4 bg-destructive/5 rounded-xl border border-destructive/20 text-center'>
+        <div className='mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-4 bg-destructive/5 rounded-xl border border-destructive/20'>
           <AlertCircle className='w-6 h-6 text-destructive shrink-0' />
           <div className='flex-1 min-w-0 text-left'>
             <div className='font-semibold text-sm text-destructive'>Tìm kiếm hình ảnh thất bại</div>
@@ -331,10 +339,30 @@ export default function ProductsPage() {
         </div>
       )}
 
+      {/* Mobile Filter Toggle */}
+      {vsState !== 'results' && vsState !== 'analyzing' && vsState !== 'error' && (
+        <div className='lg:hidden mb-4'>
+          <Sheet open={mobileFilterOpen} onOpenChange={setMobileFilterOpen}>
+            <SheetTrigger asChild>
+              <Button variant='outline' size='sm' className='gap-2'>
+                <SlidersHorizontal className='h-4 w-4' />
+                Bộ lọc
+              </Button>
+            </SheetTrigger>
+            <SheetContent side='left' className='w-80 p-0 overflow-y-auto'>
+              <SheetHeader className='p-4 border-b'>
+                <SheetTitle>Bộ lọc sản phẩm</SheetTitle>
+              </SheetHeader>
+              <ProductSidebar onApply={() => setMobileFilterOpen(false)} />
+            </SheetContent>
+          </Sheet>
+        </div>
+      )}
+
       <div className='flex flex-col lg:flex-row gap-8'>
-        {/* Sidebar - hidden during visual search results */}
+        {/* Sidebar - hidden on mobile, shown on desktop */}
         {vsState !== 'results' && vsState !== 'analyzing' && vsState !== 'error' && (
-          <aside className='w-full lg:w-64 flex-shrink-0'>
+          <aside className='hidden lg:block lg:w-64 flex-shrink-0'>
             <ProductSidebar />
           </aside>
         )}
@@ -343,8 +371,8 @@ export default function ProductsPage() {
         <main className={vsState !== 'results' && vsState !== 'analyzing' && vsState !== 'error' ? 'flex-1' : 'w-full'}>
           {/* Visual Search Loading Skeleton */}
           {vsState === 'analyzing' ? (
-            <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4'>
-              {Array.from({ length: 10 }).map((_, i) => (
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
+              {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className='space-y-3'>
                   <Skeleton className='aspect-square w-full rounded-lg' />
                   <Skeleton className='h-4 w-3/4' />

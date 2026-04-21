@@ -28,59 +28,65 @@ export function Pagination({
   }
 
   return (
-    <div className='flex items-center gap-2'>
-      <Button
-        variant='outline'
-        size='icon'
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-      >
-        <ChevronLeft className='h-4 w-4' />
-      </Button>
-
-      {visiblePages[0] > 1 && (
-        <>
-          <Button variant='outline' size='icon' onClick={() => onPageChange(1)}>
-            1
-          </Button>
-          {visiblePages[0] > 2 && <span className='px-2'>...</span>}
-        </>
-      )}
-
-      {visiblePages.map((page) => (
+    <div className='flex items-center justify-center'>
+      <div className='flex items-center gap-1 sm:gap-2'>
         <Button
-          key={page}
-          variant={currentPage === page ? 'default' : 'outline'}
+          variant='outline'
           size='icon'
-          onClick={() => onPageChange(page)}
+          className='h-9 w-9'
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
         >
-          {page}
+          <ChevronLeft className='h-4 w-4' />
         </Button>
-      ))}
 
-      {visiblePages[visiblePages.length - 1] < totalPages && (
-        <>
-          {visiblePages[visiblePages.length - 1] < totalPages - 1 && (
-            <span className='px-2'>...</span>
-          )}
+        {visiblePages[0] > 1 && (
+          <>
+            <Button variant='outline' size='icon' className='h-9 w-9' onClick={() => onPageChange(1)}>
+              1
+            </Button>
+            {visiblePages[0] > 2 && <span className='px-1 sm:px-2 text-sm'>...</span>}
+          </>
+        )}
+
+        {visiblePages.map((page) => (
           <Button
-            variant='outline'
+            key={page}
+            variant={currentPage === page ? 'default' : 'outline'}
             size='icon'
-            onClick={() => onPageChange(totalPages)}
+            className='h-9 w-9'
+            onClick={() => onPageChange(page)}
           >
-            {totalPages}
+            {page}
           </Button>
-        </>
-      )}
+        ))}
 
-      <Button
-        variant='outline'
-        size='icon'
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-      >
-        <ChevronRight className='h-4 w-4' />
-      </Button>
+        {visiblePages[visiblePages.length - 1] < totalPages && (
+          <>
+            {visiblePages[visiblePages.length - 1] < totalPages - 1 && (
+              <span className='px-1 sm:px-2 text-sm'>...</span>
+            )}
+            <Button
+              variant='outline'
+              size='icon'
+              className='h-9 w-9'
+              onClick={() => onPageChange(totalPages)}
+            >
+              {totalPages}
+            </Button>
+          </>
+        )}
+
+        <Button
+          variant='outline'
+          size='icon'
+          className='h-9 w-9'
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          <ChevronRight className='h-4 w-4' />
+        </Button>
+      </div>
     </div>
   )
 }

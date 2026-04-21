@@ -177,7 +177,7 @@ export function ProductInfo({ product, selectedColor: externalColor, onColorChan
         </div>
 
         {/* Product Name */}
-        <h1 className='text-3xl font-bold tracking-tight'>{product.name}</h1>
+        <h1 className='text-2xl sm:text-3xl font-bold tracking-tight'>{product.name}</h1>
 
         {/* Rating */}
         <div className='flex items-center gap-2 mt-2'>
@@ -204,16 +204,16 @@ export function ProductInfo({ product, selectedColor: externalColor, onColorChan
       </div>
 
       {/* Price */}
-      <div className='flex items-baseline gap-3'>
-        <span className='text-3xl font-bold'>
+      <div className='flex flex-wrap items-baseline gap-2 sm:gap-3'>
+        <span className='text-2xl sm:text-3xl font-bold'>
           {formatPrice(product.price)}
         </span>
         {product.originalPrice && product.originalPrice > product.price && (
           <>
-            <span className='text-lg text-muted-foreground line-through'>
+            <span className='text-base sm:text-lg text-muted-foreground line-through'>
               {formatPrice(product.originalPrice)}
             </span>
-            <span className='text-sm font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded'>
+            <span className='text-xs sm:text-sm font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded'>
               Save {Math.round((1 - product.price / product.originalPrice) * 100)}%
             </span>
           </>
@@ -298,22 +298,26 @@ export function ProductInfo({ product, selectedColor: externalColor, onColorChan
         </div>
 
         {/* CTA Buttons */}
-        <div className='grid grid-cols-2 gap-3 mt-4'>
-          <Button
-            variant='outline'
-            onClick={handleAddToCart}
-            disabled={product.stock === 0}
-            size='lg'
-          >
-            {product.stock > 0 ? 'Thêm vào giỏ hàng' : 'Hết hàng'}
-          </Button>
-          <Button
-            onClick={validateAndBuyNow}
-            disabled={product.stock === 0}
-            size='lg'
-          >
-            {product.stock > 0 ? 'Mua ngay' : 'Hết hàng'}
-          </Button>
+        <div className='w-full max-w-md'>
+          <div className='grid grid-cols-2 gap-3 mt-4'>
+            <Button
+              variant='outline'
+              onClick={handleAddToCart}
+              disabled={product.stock === 0}
+              size='lg'
+              className='text-xs sm:text-sm'
+            >
+              {product.stock > 0 ? 'Thêm vào giỏ hàng' : 'Hết hàng'}
+            </Button>
+            <Button
+              onClick={validateAndBuyNow}
+              disabled={product.stock === 0}
+              size='lg'
+              className='text-xs sm:text-sm'
+            >
+              {product.stock > 0 ? 'Mua ngay' : 'Hết hàng'}
+            </Button>
+          </div>
         </div>
 
         {/* Quick Info */}

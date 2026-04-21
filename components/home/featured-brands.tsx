@@ -23,7 +23,7 @@ export function FeaturedBrands() {
           </p>
         </div>
 
-        <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4'>
+        <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4'>
           {BRANDS.map(({ brand, label, tagline, bg, text }) => (
             <Link
               key={brand}
@@ -36,7 +36,7 @@ export function FeaturedBrands() {
               `}
             >
               {/* Logo Text */}
-              <span className='text-xl font-black tracking-widest uppercase'>
+              <span className='text-sm sm:text-base md:text-lg lg:text-xl font-black tracking-wide sm:tracking-widest uppercase text-center px-1'>
                 {label}
               </span>
 

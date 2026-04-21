@@ -41,7 +41,7 @@ export function Footer() {
   return (
     <footer className='bg-gray-900 text-gray-300'>
       <div className='container mx-auto px-4 sm:px-6 lg:px-8 py-12'>
-        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-10'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 sm:gap-6 lg:gap-10'>
           {/* Brands */}
           <div>
             <h3 className='font-semibold text-white mb-4'>Thương hiệu</h3>
@@ -199,7 +199,7 @@ export function Footer() {
                   href='https://facebook.com/nqviet.04'
                   target='_blank'
                   rel='noopener noreferrer'
-                  className='w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors'
+                  className='w-11 h-11 sm:w-9 sm:h-9 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors flex items-center justify-center'
                   aria-label='Facebook'
                 >
                   <Facebook className='h-4 w-4' />
@@ -208,7 +208,7 @@ export function Footer() {
                   href='https://instagram.com/nqviet.04'
                   target='_blank'
                   rel='noopener noreferrer'
-                  className='w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors'
+                  className='w-11 h-11 sm:w-9 sm:h-9 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors flex items-center justify-center'
                   aria-label='Instagram'
                 >
                   <Instagram className='h-4 w-4' />
@@ -217,7 +217,7 @@ export function Footer() {
                   href='https://www.tiktok.com/@qouc_dzviet'
                   target='_blank'
                   rel='noopener noreferrer'
-                  className='w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors'
+                  className='w-11 h-11 sm:w-9 sm:h-9 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors flex items-center justify-center'
                   aria-label='TikTok'
                 >
                   <svg className='h-4 w-4' viewBox='0 0 24 24' fill='currentColor'>
@@ -234,9 +234,8 @@ export function Footer() {
             <div className='space-y-3'>
               <div className='flex gap-2.5 text-sm'>
                 <MapPin className='h-4 w-4 flex-shrink-0 mt-0.5 text-gray-500' />
-                <span className='text-gray-400'>
-                  Tòa S3.03, Vinhome Grand Pard, Nguyễn Xiển, Long Bình,<br />
-                  TP. Hồ Chí Minh
+                <span className='text-gray-400 leading-relaxed'>
+                  Tòa S3.03, Vinhome Grand Park, Nguyễn Xiển, Long Bình, TP. Hồ Chí Minh
                 </span>
               </div>
               <div className='flex gap-2.5 text-sm'>
@@ -250,8 +249,10 @@ export function Footer() {
               </div>
               <div className='flex gap-2.5 text-sm'>
                 <Clock className='h-4 w-4 flex-shrink-0 mt-0.5 text-gray-500' />
-                <span className='text-gray-400'>
-                  Thứ 2 - Thứ 6: 8:00 - 20:00<br />
+                <span className='text-gray-400 leading-relaxed'>
+                  Thứ 2 - Thứ 6: 8:00 - 20:00
+                  <br className='hidden sm:inline' />
+                  <span className='sm:hidden'> | </span>
                   Thứ 7 - CN: 9:00 - 19:00
                 </span>
               </div>
@@ -275,19 +276,19 @@ export function Footer() {
             <p className='text-sm mb-3'>
               Nhận ưu đãi độc quyền, sản phẩm mới và tips thời trang.
             </p>
-            <form className='flex gap-2' onSubmit={handleSubscribe} suppressHydrationWarning>
+            <form className='flex flex-col sm:flex-row gap-2' onSubmit={handleSubscribe} suppressHydrationWarning>
               <input
                 type='email'
                 placeholder='Email của bạn'
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className='flex-1 px-3 py-2 rounded-md text-sm bg-gray-800 border border-gray-700 text-white placeholder:text-gray-500 focus:outline-none focus:border-gray-500'
+                className='flex-1 px-3 py-2 sm:py-2 min-h-[42px] rounded-md text-sm bg-gray-800 border border-gray-700 text-white placeholder:text-gray-500 focus:outline-none focus:border-gray-500'
                 suppressHydrationWarning
               />
               <button
                 type='submit'
                 disabled={isLoading || !mounted ? false : !email}
-                className='px-4 py-2 rounded-md text-sm bg-white text-gray-900 font-medium hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+                className='px-4 py-2 min-h-[42px] sm:min-h-[auto] rounded-md text-sm bg-white text-gray-900 font-medium hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap'
                 suppressHydrationWarning
               >
                 {isLoading ? '...' : 'Đăng ký'}

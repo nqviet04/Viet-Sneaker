@@ -69,7 +69,7 @@ export default function ShippingPage() {
         </div>
 
         {/* Free Shipping Banner */}
-        <div className='bg-black text-white rounded-xl p-6 mb-8 flex items-center gap-4'>
+        <div className='bg-black text-white rounded-xl p-4 sm:p-6 mb-6 sm:mb-8 flex items-center gap-4'>
           <div className='w-12 h-12 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0'>
             <Truck className='w-6 h-6' />
           </div>
@@ -84,34 +84,29 @@ export default function ShippingPage() {
         {/* Shipping Rates */}
         <div className='mb-8'>
           <h2 className='text-lg font-semibold mb-4'>Bảng giá vận chuyển</h2>
-          <div className='overflow-x-auto'>
-            <table className='w-full text-sm border rounded-lg overflow-hidden'>
-              <thead className='bg-gray-50'>
-                <tr>
-                  <th className='text-left py-3 px-4 font-semibold'>Khu vực</th>
-                  <th className='text-left py-3 px-4 font-semibold'>Thời gian giao</th>
-                  <th className='text-left py-3 px-4 font-semibold'>Phí vận chuyển</th>
-                  <th className='text-left py-3 px-4 font-semibold'>Ghi chú</th>
-                </tr>
-              </thead>
-              <tbody>
-                {shippingRates.map((rate, index) => (
-                  <tr key={index} className='border-t'>
-                    <td className='py-3 px-4 font-medium'>{rate.region}</td>
-                    <td className='py-3 px-4'>
-                      <span className='flex items-center gap-1.5'>
-                        <Clock className='w-3.5 h-3.5 text-muted-foreground' />
-                        {rate.time}
-                      </span>
-                    </td>
-                    <td className='py-3 px-4'>
-                      <span className='font-semibold'>{rate.fee}</span>
-                    </td>
-                    <td className='py-3 px-4 text-muted-foreground text-xs'>{rate.note}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className='space-y-4'>
+            {shippingRates.map((rate, index) => (
+              <div key={index} className='bg-gray-50 rounded-xl p-4'>
+                <div className='flex items-start gap-3'>
+                  <div className='w-10 h-10 rounded-full bg-black/10 flex items-center justify-center flex-shrink-0'>
+                    <Truck className='w-5 h-5' />
+                  </div>
+                  <div className='flex-1 min-w-0'>
+                    <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2'>
+                      <h3 className='font-semibold text-sm sm:text-base'>{rate.region}</h3>
+                      <span className='font-bold text-base sm:text-lg'>{rate.fee}</span>
+                    </div>
+                    <div className='flex items-center gap-1.5 text-sm text-muted-foreground mb-1'>
+                      <Clock className='w-3.5 h-3.5 flex-shrink-0' />
+                      <span>{rate.time}</span>
+                    </div>
+                    {rate.note && (
+                      <p className='text-xs text-muted-foreground'>{rate.note}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 

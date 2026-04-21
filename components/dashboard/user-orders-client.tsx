@@ -89,18 +89,18 @@ export function UserOrdersClient({ initialOrders }: UserOrdersClientProps) {
         const canCancel = CANCELLABLE_STATUSES.includes(order.status)
         return (
           <Card key={order.id}>
-            <CardContent className='p-6'>
+            <CardContent className='p-4 sm:p-6'>
               <div className='space-y-4'>
-                <div className='flex items-center justify-between'>
+                <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-2'>
                   <div>
-                    <p className='font-medium'>Đơn #{order.id.slice(-8)}</p>
-                    <p className='text-sm text-muted-foreground'>
+                    <p className='font-medium text-sm sm:text-base'>Đơn #{order.id.slice(-8)}</p>
+                    <p className='text-xs sm:text-sm text-muted-foreground'>
                       {new Date(order.createdAt).toLocaleDateString('vi-VN', {
                         timeZone: 'Asia/Ho_Chi_Minh',
                       })}
                     </p>
                   </div>
-                  <div className='flex items-center gap-2'>
+                  <div className='flex items-center gap-2 flex-wrap'>
                     <Badge
                       variant={
                         order.status === 'DELIVERED'
@@ -111,7 +111,7 @@ export function UserOrdersClient({ initialOrders }: UserOrdersClientProps) {
                           ? 'secondary'
                           : 'secondary'
                       }
-                      className='capitalize'
+                      className='capitalize text-xs'
                     >
                       {STATUS_LABELS[order.status] || order.status.toLowerCase()}
                     </Badge>
@@ -119,12 +119,12 @@ export function UserOrdersClient({ initialOrders }: UserOrdersClientProps) {
                       <Button
                         variant='outline'
                         size='sm'
-                        className='text-destructive hover:text-destructive'
+                        className='text-destructive hover:text-destructive h-8 text-xs'
                         disabled={cancellingId === order.id}
                         onClick={() => handleCancel(order.id)}
                       >
-                        <X className='h-4 w-4 mr-1' />
-                        {cancellingId === order.id ? 'Đang hủy...' : 'Hủy đơn'}
+                        <X className='h-3 w-3 sm:h-4 sm:w-4 mr-1' />
+                        {cancellingId === order.id ? '...' : 'Hủy'}
                       </Button>
                     )}
                   </div>
@@ -134,57 +134,57 @@ export function UserOrdersClient({ initialOrders }: UserOrdersClientProps) {
                   {order.items.map((item) => (
                     <div
                       key={item.id}
-                      className='flex items-center justify-between py-4'
+                      className='flex flex-col sm:flex-row sm:items-start justify-between gap-3 py-3 sm:py-4'
                     >
-                      <div className='flex items-center space-x-4'>
+                      <div className='flex items-center gap-3'>
                         <img
                           src={item.product.images[0]}
                           alt={item.product.name}
-                          className='h-16 w-16 rounded-md object-cover'
+                          className='h-14 w-14 sm:h-16 sm:w-16 rounded-md object-cover flex-shrink-0'
                         />
-                        <div>
-                          <p className='font-medium'>{item.product.name}</p>
-                          <p className='text-sm text-muted-foreground'>
-                            Size: {item.selectedSize} | Màu: {item.selectedColor} | Số lượng: {item.quantity}
+                        <div className='min-w-0'>
+                          <p className='font-medium text-sm truncate'>{item.product.name}</p>
+                          <p className='text-xs sm:text-sm text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis'>
+                            Size: {item.selectedSize} | Màu: {item.selectedColor} | SL: {item.quantity}
                           </p>
                         </div>
                       </div>
-                      <p className='font-medium'>
+                      <p className='font-medium text-sm sm:text-base text-right shrink-0'>
                         {formatPrice(item.price * item.quantity)}
                       </p>
                     </div>
                   ))}
                 </div>
 
-                <div className='flex justify-between border-t pt-4'>
-                  <div>
+                <div className='flex flex-col lg:flex-row justify-between gap-4 border-t pt-4'>
+                  <div className='text-sm'>
                     <p className='font-medium'>Địa chỉ giao hàng:</p>
-                    <p className='text-sm text-muted-foreground'>
+                    <p className='text-muted-foreground'>
                       {order.shippingAddress.street}
                     </p>
-                    <p className='text-sm text-muted-foreground'>
+                    <p className='text-muted-foreground'>
                       {order.shippingAddress.city},{' '}
                       {order.shippingAddress.state}{' '}
                       {order.shippingAddress.postalCode}
                     </p>
-                    <p className='text-sm text-muted-foreground'>
+                    <p className='text-muted-foreground'>
                       {order.shippingAddress.country}
                     </p>
                     {order.shippingAddress.phone && (
-                      <p className='text-sm text-muted-foreground'>
+                      <p className='text-muted-foreground'>
                         SĐT: {order.shippingAddress.phone}
                       </p>
                     )}
                   </div>
-                  <div className='text-right'>
-                    <p className='text-sm text-muted-foreground'>Phương thức</p>
+                  <div className='text-left lg:text-right shrink-0'>
+                    <p className='text-xs sm:text-sm text-muted-foreground'>Phương thức</p>
                     <p className='text-sm font-medium mb-1'>
                       {order.paymentMethod === 'COD' ? 'COD' :
                        order.paymentMethod === 'BANK_TRANSFER' ? 'Chuyển khoản' :
                        order.paymentMethod || 'Không xác định'}
                     </p>
-                    <p className='text-sm text-muted-foreground'>Tổng cộng</p>
-                    <p className='text-2xl font-bold'>
+                    <p className='text-xs sm:text-sm text-muted-foreground'>Tổng cộng</p>
+                    <p className='text-lg sm:text-xl lg:text-2xl font-bold'>
                       {formatPrice(order.total)}
                     </p>
                   </div>

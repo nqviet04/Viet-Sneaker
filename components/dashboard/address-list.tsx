@@ -91,11 +91,11 @@ export function AddressList({ addresses }: AddressListProps) {
       {addresses.map((address) => (
         <div
           key={address.id}
-          className='flex items-start justify-between rounded-lg border p-4'
+          className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-lg border p-4'
         >
-          <div className='space-y-1'>
-            <div className='flex items-center gap-2'>
-              <p className='font-medium'>{address.fullName || 'Địa chỉ giao hàng'}</p>
+          <div className='space-y-1 w-full sm:w-auto'>
+            <div className='flex flex-wrap items-center gap-2'>
+              <p className='font-medium text-sm sm:text-base'>{address.fullName || 'Địa chỉ giao hàng'}</p>
               {address.isDefault && (
                 <span className='rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary'>
                   Mặc định
@@ -109,7 +109,7 @@ export function AddressList({ addresses }: AddressListProps) {
             <p className='text-sm text-muted-foreground'>{address.city}</p>
             <p className='text-sm text-muted-foreground'>{address.country}</p>
           </div>
-          <div className='flex space-x-2'>
+          <div className='flex space-x-2 flex-shrink-0'>
             <Button
               variant='ghost'
               size='icon'
